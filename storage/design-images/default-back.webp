@@ -1,0 +1,16 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='600' height='450' viewBox='0 0 600 450'>
+  <defs>
+    <linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'>
+      <stop offset='0%' stop-color='#db2777'/>
+      <stop offset='50%' stop-color='#9333ea'/>
+      <stop offset='100%' stop-color='#4f46e5'/>
+    </linearGradient>
+  </defs>
+  <rect width='600' height='450' rx='24' fill='url(#bg)'/>
+  <rect x='20' y='20' width='560' height='410' rx='16' fill='none' stroke='#fde047' stroke-width='3' stroke-dasharray='12 6'/>
+  <circle cx='300' cy='140' r='40' fill='#fde047' fill-opacity='0.2' stroke='#fde047' stroke-width='2'/>
+  <path d='M300 115 L308 132 L326 135 L313 148 L316 166 L300 157 L284 166 L287 148 L274 135 L292 132 Z' fill='#fde047'/>
+  <text x='300' y='220' text-anchor='middle' fill='#fde047' font-family='Georgia, serif' font-size='32' font-weight='bold'>FAIR SUCCESS CARDS</text>
+  <text x='300' y='265' text-anchor='middle' fill='#ffffff' font-family='system-ui, sans-serif' font-size='20' font-weight='600'>EXAMINATION EXCELLENCE</text>
+  <text x='300' y='360' text-anchor='middle' fill='#cbd5e1' font-family='system-ui, sans-serif' font-size='14'>Handcrafted &amp; Delivered across Kenya</text>
+</svg>

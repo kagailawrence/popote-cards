@@ -1,0 +1,14 @@
+{
+  "name": "success-card-delivery-platform",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --dir frontend dev & pnpm --dir server dev",
+    "frontend:dev": "pnpm --dir frontend dev",
+    "server:dev": "pnpm --dir server dev",
+    "build": "pnpm --dir server build && pnpm --dir frontend build",
+    "typecheck": "pnpm --dir server typecheck && pnpm --dir frontend typecheck",
+    "db:migrate": "pnpm --dir server db:migrate",
+    "db:seed": "pnpm --dir server db:seed"
+  }
+}
