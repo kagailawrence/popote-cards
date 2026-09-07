@@ -9,6 +9,11 @@
     "build": "pnpm --dir server build && pnpm --dir frontend build",
     "typecheck": "pnpm --dir server typecheck && pnpm --dir frontend typecheck",
     "db:migrate": "pnpm --dir server db:migrate",
-    "db:seed": "pnpm --dir server db:seed"
+    "db:seed": "pnpm --dir server db:seed",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:ps": "docker compose ps"
   }
 }
