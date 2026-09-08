@@ -20,6 +20,7 @@ import {
   sendOrderConfirmationEmail,
   sendOrderTrackingUpdateEmail,
 } from '../../services/emailService'
+import { orderLimiter, emailLimiter } from '../../middleware/rateLimiter'
 
 const router = Router()
 
@@ -66,7 +67,7 @@ const createOrderSchema = z.object({
   items: z.array(orderItemStudentSchema).min(1, 'Order must contain at least one card item with student information'),
 })
 
-router.post('/', async (req, res, next) => {
+router.post('/', orderLimiter, async (req, res, next) => {
   try {
     const parse = createOrderSchema.safeParse(req.body)
     if (!parse.success) {
@@ -219,7 +220,7 @@ router.get('/timeline/:orderNumber', async (req, res, next) => {
 })
 
 // Send or resend tracking info to user's email
-router.post('/timeline/:orderNumber/send-email', async (req, res, next) => {
+router.post('/timeline/:orderNumber/send-email', emailLimiter, async (req, res, next) => {
   try {
     const { orderNumber } = req.params
     const { email } = req.body

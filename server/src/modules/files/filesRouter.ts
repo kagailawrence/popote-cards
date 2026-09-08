@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import { uploadCustomerPhoto, uploadDeliveryNote, uploadDesignImage, moveToPermanentStorage } from '../../middleware/upload'
 import { requireAuth } from '../../middleware/auth'
 import { STORAGE_ROOT } from '../../utils/storage'
+import { uploadLimiter } from '../../middleware/rateLimiter'
 
 const router = Router()
 const JWT_ACCESS_SECRET = process.env.JWT_SECRET || 'super-secret-development-jwt-key-32-chars-min'
@@ -95,7 +96,7 @@ router.get('/:type/:filename', (req, res) => {
 })
 
 // Public/Guest photo upload endpoint with EXIF stripping and magic-byte check
-router.post('/upload-photo', uploadCustomerPhoto.single('photo'), async (req, res, next) => {
+router.post('/upload-photo', uploadLimiter, uploadCustomerPhoto.single('photo'), async (req, res, next) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
 
@@ -125,6 +126,7 @@ router.post('/upload-photo', uploadCustomerPhoto.single('photo'), async (req, re
 router.post(
   '/upload-design-image',
   requireAuth(['admin', 'super_admin']),
+  uploadLimiter,
   uploadDesignImage.single('image'),
   async (req, res, next) => {
     try {

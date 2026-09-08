@@ -73,7 +73,7 @@ export default function OrderTrackPage() {
   const steps = [
     { key: 'pending_payment', label: 'Order Placed', desc: 'Order details captured in central platform' },
     { key: 'paid', label: 'Payment Confirmed', desc: 'Payment verified & order released for processing' },
-    { key: 'routed_to_print', label: 'Regional Hub Routed', desc: 'Assigned to nearest regional print center' },
+    { key: 'routed_to_print', label: 'Printing Hub', desc: 'Assigned  print center' },
     { key: 'printing', label: 'Heavy Board Printing', desc: '350 GSM paper board printing & custom layout' },
     { key: 'dispatched', label: 'Dispatched with Courier/Rider', desc: 'Out for final delivery to recipient school' },
     { key: 'delivered', label: 'Delivered', desc: 'Successfully handed over to school reception' }

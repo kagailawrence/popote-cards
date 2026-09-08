@@ -26,6 +26,9 @@ import { httpLogger } from './utils/logger'
 
 export const app = express()
 
+// Trust reverse proxy (Traefik / Nginx / Cloudflare / Docker bridge) for accurate client IP rate limiting
+app.set('trust proxy', 1)
+
 // Security headers per Section 4.3 & CSP
 app.use(
   helmet({

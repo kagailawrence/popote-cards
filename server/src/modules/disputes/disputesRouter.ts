@@ -4,6 +4,7 @@ import { createDispute, getDisputes, updateDisputeStatus } from '../../db/querie
 import { getOrderByNumberAndPhone } from '../../db/queries/orderQueries'
 import { normalizePhoneNumber, isValidKenyanPhone } from '../../utils/phoneUtils'
 import { requireAuth } from '../../middleware/auth'
+import { disputeLimiter } from '../../middleware/rateLimiter'
 
 const router = Router()
 
@@ -18,7 +19,7 @@ const createDisputeSchema = z.object({
 })
 
 // Public dispute submission
-router.post('/', async (req, res, next) => {
+router.post('/', disputeLimiter, async (req, res, next) => {
   try {
     const parse = createDisputeSchema.safeParse(req.body)
     if (!parse.success) return res.status(400).json({ error: 'Invalid dispute parameters' })

@@ -26,7 +26,7 @@ import {
   verifyCustomerSessionToken,
   requireAuth,
 } from '../../middleware/auth'
-import { authLimiter } from '../../middleware/rateLimiter'
+import { authLimiter, passwordResetLimiter } from '../../middleware/rateLimiter'
 import { isValidKenyanPhone, normalizePhoneNumber } from '../../utils/phoneUtils'
 import { sendWelcomeEmail, sendPasswordResetEmail, sendEmail } from '../../services/emailService'
 
@@ -198,7 +198,7 @@ router.post('/customer/login', authLimiter, async (req, res, next) => {
 // -------------------------------------------------------------
 // Forgot Password Request (Sends Email with Secure Reset Token)
 // -------------------------------------------------------------
-router.post('/forgot-password', authLimiter, async (req, res, next) => {
+router.post('/forgot-password', passwordResetLimiter, async (req, res, next) => {
   try {
     const parse = forgotPasswordSchema.safeParse(req.body)
     if (!parse.success) {
@@ -245,7 +245,7 @@ router.post('/forgot-password', authLimiter, async (req, res, next) => {
 // -------------------------------------------------------------
 // Reset Password Submission (Validates Token and Updates Password)
 // -------------------------------------------------------------
-router.post('/reset-password', authLimiter, async (req, res, next) => {
+router.post('/reset-password', passwordResetLimiter, async (req, res, next) => {
   try {
     const parse = resetPasswordSchema.safeParse(req.body)
     if (!parse.success) {
