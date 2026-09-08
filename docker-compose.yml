@@ -75,6 +75,12 @@ services:
       JWT_SECRET: ${JWT_SECRET:-037f66b9c95517116f4e0e6aab2c043ebf3a626c52e2d282b6bc4d40a424658b}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-df2658125511e9ad477264264a9fd370ddca2ec9e3bfe60ac82f423d30a07885}
       MPESA_ENV: ${MPESA_ENV:-sandbox}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-Popote Cards <notifications@popotecards.co.ke>}
     volumes:
       - ./storage:/app/storage
     networks:

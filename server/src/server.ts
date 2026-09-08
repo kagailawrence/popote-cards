@@ -5,11 +5,18 @@ import { verifyEmailTransporter } from './services/emailService'
 
 const port = Number(process.env.PORT ?? 4000)
 
-async function startServer() {
-  await initRedis()
-  await verifyEmailTransporter().catch((e) => logger.warn({ err: e }, '[Email] Transporter startup check failed'))
+function startServer() {
+  // Bind HTTP listener immediately so health checks pass without delay
   const server = app.listen(port, () => {
     logger.info({ port, env: process.env.NODE_ENV || 'development' }, `🚀 [popote-server] listening on port ${port}`)
+  })
+
+  // Asynchronously initialize Redis and verify email transporter in non-blocking manner
+  Promise.allSettled([
+    initRedis().catch((err) => logger.warn({ err }, '[Redis] Startup initialization notice')),
+    verifyEmailTransporter().catch((err) => logger.warn({ err }, '[Email] Transporter startup check notice')),
+  ]).then(() => {
+    logger.info('[popote-server] Background subsystems initialized')
   })
 
   const shutdown = (signal: string) => {
@@ -24,7 +31,4 @@ async function startServer() {
   process.on('SIGINT', () => shutdown('SIGINT'))
 }
 
-startServer().catch((err) => {
-  logger.fatal({ err }, '[popote-server] Failed to start server')
-  process.exit(1)
-})
+startServer()

@@ -66,13 +66,16 @@ export async function verifyEmailTransporter(): Promise<boolean> {
   try {
     const transporter = getTransporter()
     if (SMTP_USER && SMTP_PASS) {
-      await transporter.verify()
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('SMTP connection verification timed out after 3000ms')), 3000)
+      )
+      await Promise.race([transporter.verify(), timeoutPromise])
       console.log('[Email] SMTP connection verified successfully.')
       return true
     }
     return true
   } catch (err: any) {
-    console.warn('[Email] SMTP verify warning (will operate in graceful mode):', err.message)
+    console.warn('[Email] SMTP verify notice (operating in safe fallback mode):', err.message)
     return false
   }
 }
