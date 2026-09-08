@@ -1,72 +1,285 @@
 import { pool } from '../config/db';
 
-export const KENYA_47_COUNTIES = [
+export interface CountySeedData {
+  name: string;
+  region: string;
+  subCounties: string[];
+}
+
+export const KENYA_47_COUNTIES: CountySeedData[] = [
   // 1. Coast (6)
-  { name: 'Mombasa', region: 'Coast', subCounties: ['Mvita (CBD)', 'Nyali', 'Changamwe', 'Kisauni', 'Likoni', 'Jomvu'] },
-  { name: 'Kwale', region: 'Coast', subCounties: ['Matuga (CBD)', 'Msambweni', 'Lunga Lunga', 'Kinango'] },
-  { name: 'Kilifi', region: 'Coast', subCounties: ['Kilifi North (CBD)', 'Kilifi South', 'Malindi', 'Magarini', 'Kaloleni', 'Rabai', 'Ganze'] },
-  { name: 'Tana River', region: 'Coast', subCounties: ['Hola (CBD)', 'Garsen', 'Bura'] },
-  { name: 'Lamu', region: 'Coast', subCounties: ['Lamu Island (CBD)', 'Lamu West', 'Lamu East'] },
-  { name: 'Taita-Taveta', region: 'Coast', subCounties: ['Voi (CBD)', 'Wundanyi', 'Taveta', 'Mwatate'] },
+  {
+    name: 'Mombasa',
+    region: 'Coast',
+    subCounties: ['Mvita (CBD)', 'Nyali', 'Changamwe', 'Jomvu', 'Kisauni', 'Likoni']
+  },
+  {
+    name: 'Kwale',
+    region: 'Coast',
+    subCounties: ['Matuga (CBD)', 'Msambweni', 'Lunga Lunga', 'Kinango', 'Samburu']
+  },
+  {
+    name: 'Kilifi',
+    region: 'Coast',
+    subCounties: ['Kilifi North (CBD)', 'Kilifi South', 'Malindi', 'Magarini', 'Kaloleni', 'Rabai', 'Ganze']
+  },
+  {
+    name: 'Tana River',
+    region: 'Coast',
+    subCounties: ['Galole / Hola (CBD)', 'Garsen', 'Bura']
+  },
+  {
+    name: 'Lamu',
+    region: 'Coast',
+    subCounties: ['Lamu Island (CBD)', 'Lamu West', 'Lamu East']
+  },
+  {
+    name: 'Taita-Taveta',
+    region: 'Coast',
+    subCounties: ['Voi (CBD)', 'Wundanyi', 'Taveta', 'Mwatate']
+  },
 
   // 2. North Eastern (3)
-  { name: 'Garissa', region: 'North Eastern', subCounties: ['Garissa Township (CBD)', 'Dadaab', 'Fafi', 'Ijara', 'Balambala', 'Lagdera'] },
-  { name: 'Wajir', region: 'North Eastern', subCounties: ['Wajir East (CBD)', 'Wajir North', 'Wajir South', 'Wajir West', 'Eldas', 'Tarbaj'] },
-  { name: 'Mandera', region: 'North Eastern', subCounties: ['Mandera East (CBD)', 'Mandera North', 'Mandera South', 'Mandera West', 'Banissa', 'Lafey'] },
+  {
+    name: 'Garissa',
+    region: 'North Eastern',
+    subCounties: ['Garissa Township (CBD)', 'Balambala', 'Dadaab', 'Fafi', 'Ijara', 'Lagdera']
+  },
+  {
+    name: 'Wajir',
+    region: 'North Eastern',
+    subCounties: ['Wajir East (CBD)', 'Eldas', 'Tarbaj', 'Wajir North', 'Wajir South', 'Wajir West']
+  },
+  {
+    name: 'Mandera',
+    region: 'North Eastern',
+    subCounties: ['Mandera East (CBD)', 'Banissa', 'Lafey', 'Mandera North', 'Mandera South', 'Mandera West']
+  },
 
   // 3. Eastern (8)
-  { name: 'Marsabit', region: 'Eastern', subCounties: ['Marsabit Central (CBD)', 'Saku', 'Laisamis', 'North Horr', 'Moyale'] },
-  { name: 'Isiolo', region: 'Eastern', subCounties: ['Isiolo Town (CBD)', 'Merti', 'Garbatulla'] },
-  { name: 'Meru', region: 'Eastern', subCounties: ['Imenti North (Meru CBD)', 'Imenti South', 'Imenti Central', 'Buuri', 'Tigania East', 'Tigania West', 'Igembe South', 'Igembe Central', 'Igembe North'] },
-  { name: 'Tharaka-Nithi', region: 'Eastern', subCounties: ['Chuka (CBD)', 'Tharaka North', 'Tharaka South', 'Maara'] },
-  { name: 'Embu', region: 'Eastern', subCounties: ['Embu Town (CBD)', 'Manyatta', 'Runyenjes', 'Mbeere North', 'Mbeere South'] },
-  { name: 'Kitui', region: 'Eastern', subCounties: ['Kitui Central (CBD)', 'Kitui Rural', 'Kitui West', 'Kitui East', 'Kitui South', 'Mwingi North', 'Mwingi Central', 'Mwingi West'] },
-  { name: 'Machakos', region: 'Eastern', subCounties: ['Machakos Town (CBD)', 'Mavoko (Athi River)', 'Kathiani', 'Kangundo', 'Matungulu', 'Yatta', 'Masinga', 'Mwala'] },
-  { name: 'Makueni', region: 'Eastern', subCounties: ['Wote (CBD)', 'Kaiti', 'Kibwezi East', 'Kibwezi West', 'Kilome', 'Makueni'] },
+  {
+    name: 'Marsabit',
+    region: 'Eastern',
+    subCounties: ['Marsabit Central (CBD)', 'Laisamis', 'Moyale', 'North Horr', 'Saku']
+  },
+  {
+    name: 'Isiolo',
+    region: 'Eastern',
+    subCounties: ['Isiolo Town (CBD)', 'Garbatulla', 'Merti']
+  },
+  {
+    name: 'Meru',
+    region: 'Eastern',
+    subCounties: ['Imenti North (Meru CBD)', 'Buuri', 'Central Imenti', 'Igembe Central', 'Igembe North', 'Igembe South', 'South Imenti', 'Tigania East', 'Tigania West']
+  },
+  {
+    name: 'Tharaka-Nithi',
+    region: 'Eastern',
+    subCounties: ['Chuka (CBD)', 'Maara', 'Tharaka North', 'Tharaka South']
+  },
+  {
+    name: 'Embu',
+    region: 'Eastern',
+    subCounties: ['Manyatta (Embu CBD)', 'Runyenjes', 'Mbeere North', 'Mbeere South']
+  },
+  {
+    name: 'Kitui',
+    region: 'Eastern',
+    subCounties: ['Kitui Central (CBD)', 'Kitui Rural', 'Kitui South', 'Kitui East', 'Kitui West', 'Mwingi Central', 'Mwingi North', 'Mwingi West']
+  },
+  {
+    name: 'Machakos',
+    region: 'Eastern',
+    subCounties: ['Machakos Town (CBD)', 'Mavoko (Athi River)', 'Kangundo', 'Kathiani', 'Matungulu', 'Mwala', 'Yatta', 'Masinga']
+  },
+  {
+    name: 'Makueni',
+    region: 'Eastern',
+    subCounties: ['Wote (CBD)', 'Kaiti', 'Kibwezi East', 'Kibwezi West', 'Kilome', 'Makueni', 'Mbooni']
+  },
 
   // 4. Central (5)
-  { name: 'Nyandarua', region: 'Central', subCounties: ['Ol Kalou (CBD)', 'Kinangop', 'Kipipiri', 'Ndaragwa', 'Ol Joro Orok'] },
-  { name: 'Nyeri', region: 'Central', subCounties: ['Nyeri Town (CBD)', 'Tetu', 'Kieni', 'Mathira', 'Othaya', 'Mukurweini'] },
-  { name: 'Kirinyaga', region: 'Central', subCounties: ['Kerugoya (CBD)', 'Kutus', 'Mwea', 'Gichugu', 'Ndia'] },
-  { name: 'Murang\'a', region: 'Central', subCounties: ['Murang\'a Town (CBD)', 'Kigumo', 'Kandara', 'Gatanga', 'Maragua', 'Mathioya', 'Kangema'] },
-  { name: 'Kiambu', region: 'Central', subCounties: ['Kiambu Town (CBD)', 'Thika Town', 'Ruiru', 'Kikuyu', 'Limuru', 'Juja', 'Githunguri', 'Kabete', 'Lari'] },
+  {
+    name: 'Nyandarua',
+    region: 'Central',
+    subCounties: ['Ol Kalou (CBD)', 'Kinangop', 'Kipipiri', 'Ndaragwa', 'Ol Joro Orok']
+  },
+  {
+    name: 'Nyeri',
+    region: 'Central',
+    subCounties: ['Nyeri Town (CBD)', 'Kieni East', 'Kieni West', 'Mathira East', 'Mathira West', 'Mukurweini', 'Othaya', 'Tetu']
+  },
+  {
+    name: 'Kirinyaga',
+    region: 'Central',
+    subCounties: ['Kerugoya (CBD)', 'Kutus', 'Gichugu', 'Kirinyaga Central', 'Kirinyaga East', 'Kirinyaga West', 'Mwea East', 'Mwea West', 'Ndia']
+  },
+  {
+    name: 'Murang\'a',
+    region: 'Central',
+    subCounties: ['Murang\'a Town (CBD)', 'Gatanga', 'Kandara', 'Kangema', 'Kigumo', 'Maragua', 'Mathioya']
+  },
+  {
+    name: 'Kiambu',
+    region: 'Central',
+    subCounties: ['Kiambu Town (CBD)', 'Thika Town', 'Ruiru', 'Juja', 'Kikuyu', 'Kabete', 'Limuru', 'Githunguri', 'Karuri (Banana)', 'Lari', 'Gatundu South', 'Gatundu North']
+  },
 
   // 5. Rift Valley (14)
-  { name: 'Turkana', region: 'Rift Valley', subCounties: ['Lodwar (CBD)', 'Turkana Central', 'Turkana West (Kakuma)', 'Turkana East', 'Turkana North', 'Turkana South', 'Loima'] },
-  { name: 'West Pokot', region: 'Rift Valley', subCounties: ['Kapenguria (CBD)', 'Sigor', 'Kacheliba', 'Pokot South'] },
-  { name: 'Samburu', region: 'Rift Valley', subCounties: ['Maralal (CBD)', 'Samburu West', 'Samburu East', 'Samburu North'] },
-  { name: 'Trans-Nzoia', region: 'Rift Valley', subCounties: ['Kitale (CBD)', 'Kiminini', 'Saboti', 'Cherangany', 'Endebess'] },
-  { name: 'Uasin Gishu', region: 'Rift Valley', subCounties: ['Eldoret CBD (Ainabkoi)', 'Kapseret', 'Kesses', 'Moiben', 'Soy', 'Turbo'] },
-  { name: 'Elgeyo-Marakwet', region: 'Rift Valley', subCounties: ['Iten (CBD)', 'Keiyo North', 'Keiyo South', 'Marakwet East', 'Marakwet West'] },
-  { name: 'Nandi', region: 'Rift Valley', subCounties: ['Kapsabet (CBD)', 'Nandi Hills', 'Aldai', 'Chesumei', 'Emgwen', 'Mosop'] },
-  { name: 'Baringo', region: 'Rift Valley', subCounties: ['Kabarnet (CBD)', 'Baringo Central', 'Baringo North', 'Baringo South', 'Eldama Ravine', 'Mogotio', 'Tiaty'] },
-  { name: 'Laikipia', region: 'Rift Valley', subCounties: ['Nanyuki (CBD)', 'Nyahururu', 'Laikipia East', 'Laikipia West', 'Laikipia North'] },
-  { name: 'Nakuru', region: 'Rift Valley', subCounties: ['Nakuru Town East (CBD)', 'Nakuru Town West', 'Naivasha', 'Gilgil', 'Molo', 'Njoro', 'Rongai', 'Subukia', 'Bahati', 'Kuresoi North', 'Kuresoi South'] },
-  { name: 'Narok', region: 'Rift Valley', subCounties: ['Narok Town (CBD)', 'Narok North', 'Narok South', 'Narok East', 'Narok West', 'Kilgoris', 'Emurua Dikirr'] },
-  { name: 'Kajiado', region: 'Rift Valley', subCounties: ['Kajiado Central (CBD)', 'Kitengela', 'Ngong', 'Ongata Rongai', 'Kajiado North', 'Kajiado East', 'Kajiado West', 'Kajiado South'] },
-  { name: 'Kericho', region: 'Rift Valley', subCounties: ['Kericho Town (CBD)', 'Ainamoi', 'Belgut', 'Bureti', 'Kipkelion East', 'Kipkelion West', 'Soin/Sigowet'] },
-  { name: 'Bomet', region: 'Rift Valley', subCounties: ['Bomet Central (CBD)', 'Bomet East', 'Chepalungu', 'Konoin', 'Sotik'] },
+  {
+    name: 'Turkana',
+    region: 'Rift Valley',
+    subCounties: ['Lodwar (CBD)', 'Turkana Central', 'Turkana East', 'Turkana North', 'Turkana South', 'Turkana West (Kakuma)', 'Loima']
+  },
+  {
+    name: 'West Pokot',
+    region: 'Rift Valley',
+    subCounties: ['Kapenguria (CBD)', 'Kacheliba', 'Pokot South', 'Sigor']
+  },
+  {
+    name: 'Samburu',
+    region: 'Rift Valley',
+    subCounties: ['Samburu Central (Maralal CBD)', 'Samburu East', 'Samburu North', 'Samburu West']
+  },
+  {
+    name: 'Trans-Nzoia',
+    region: 'Rift Valley',
+    subCounties: ['Kitale (CBD)', 'Cherangany', 'Endebess', 'Kiminini', 'Kwanza', 'Saboti']
+  },
+  {
+    name: 'Uasin Gishu',
+    region: 'Rift Valley',
+    subCounties: ['Ainabkoi (Eldoret CBD)', 'Kapseret', 'Kesses', 'Moiben', 'Soy', 'Turbo']
+  },
+  {
+    name: 'Elgeyo-Marakwet',
+    region: 'Rift Valley',
+    subCounties: ['Keiyo North (Iten CBD)', 'Keiyo South', 'Marakwet East', 'Marakwet West']
+  },
+  {
+    name: 'Nandi',
+    region: 'Rift Valley',
+    subCounties: ['Emgwen (Kapsabet CBD)', 'Aldai', 'Chesumei', 'Mosop', 'Nandi Hills', 'Tinderet']
+  },
+  {
+    name: 'Baringo',
+    region: 'Rift Valley',
+    subCounties: ['Baringo Central (Kabarnet CBD)', 'Baringo North', 'Baringo South', 'Eldama Ravine', 'Mogotio', 'Tiaty']
+  },
+  {
+    name: 'Laikipia',
+    region: 'Rift Valley',
+    subCounties: ['Laikipia East (Nanyuki CBD)', 'Laikipia North', 'Laikipia West (Nyahururu)']
+  },
+  {
+    name: 'Nakuru',
+    region: 'Rift Valley',
+    subCounties: ['Nakuru Town East (CBD)', 'Nakuru Town West', 'Naivasha', 'Gilgil', 'Molo', 'Njoro', 'Rongai', 'Subukia', 'Bahati', 'Kuresoi North', 'Kuresoi South']
+  },
+  {
+    name: 'Narok',
+    region: 'Rift Valley',
+    subCounties: ['Narok North (Narok Town CBD)', 'Narok East', 'Narok South', 'Narok West', 'Kilgoris', 'Emurua Dikirr']
+  },
+  {
+    name: 'Kajiado',
+    region: 'Rift Valley',
+    subCounties: ['Kajiado Central (CBD)', 'Kajiado East (Kitengela)', 'Kajiado North (Ngong / Rongai)', 'Kajiado West', 'Kajiado South (Loitokitok)']
+  },
+  {
+    name: 'Kericho',
+    region: 'Rift Valley',
+    subCounties: ['Ainamoi (Kericho CBD)', 'Belgut', 'Bureti', 'Kipkelion East', 'Kipkelion West', 'Sigowet-Soin']
+  },
+  {
+    name: 'Bomet',
+    region: 'Rift Valley',
+    subCounties: ['Bomet Central (CBD)', 'Bomet East', 'Chepalungu', 'Konoin', 'Sotik']
+  },
 
   // 6. Western (4)
-  { name: 'Kakamega', region: 'Western', subCounties: ['Kakamega Town (Lurambi CBD)', 'Mumias East', 'Mumias West', 'Malava', 'Shinyalu', 'Ikolomani', 'Butere', 'Khwisero', 'Matungu', 'Navakholo', 'Likuyani', 'Lugari'] },
-  { name: 'Vihiga', region: 'Western', subCounties: ['Mbale (CBD)', 'Vihiga', 'Sabatia', 'Hamisi', 'Luanda', 'Emuhaya'] },
-  { name: 'Bungoma', region: 'Western', subCounties: ['Bungoma Town (Kanduyi CBD)', 'Webuye East', 'Webuye West', 'Kimilili', 'Sirisia', 'Tongaren', 'Bumula', 'Mt. Elgon', 'Kabuchai'] },
-  { name: 'Busia', region: 'Western', subCounties: ['Busia Town (Matayos CBD)', 'Teso North', 'Teso South', 'Nambale', 'Butula', 'Funyula (Samia)', 'Budalangi (Bunyala)'] },
+  {
+    name: 'Kakamega',
+    region: 'Western',
+    subCounties: ['Lurambi (Kakamega CBD)', 'Butere', 'Ikolomani', 'Khwisero', 'Likuyani', 'Lugari', 'Malava', 'Matungu', 'Mumias East', 'Mumias West', 'Navakholo', 'Shinyalu']
+  },
+  {
+    name: 'Vihiga',
+    region: 'Western',
+    subCounties: ['Vihiga (Mbale CBD)', 'Emuhaya', 'Hamisi', 'Luanda', 'Sabatia']
+  },
+  {
+    name: 'Bungoma',
+    region: 'Western',
+    subCounties: ['Kanduyi (Bungoma CBD)', 'Bumula', 'Kabuchai', 'Kimilili', 'Mt. Elgon', 'Sirisia', 'Tongaren', 'Webuye East', 'Webuye West']
+  },
+  {
+    name: 'Busia',
+    region: 'Western',
+    subCounties: ['Matayos (Busia CBD)', 'Budalangi (Bunyala)', 'Butula', 'Funyula (Samia)', 'Nambale', 'Teso North', 'Teso South']
+  },
 
   // 7. Nyanza (6)
-  { name: 'Siaya', region: 'Nyanza', subCounties: ['Siaya Town (Alego Usonga CBD)', 'Bondo', 'Rarieda', 'Gem', 'Ugenya', 'Ugunja'] },
-  { name: 'Kisumu', region: 'Nyanza', subCounties: ['Kisumu Central (CBD)', 'Kisumu East', 'Kisumu West', 'Nyakach', 'Nyando', 'Muhoroni', 'Seme'] },
-  { name: 'Homa Bay', region: 'Nyanza', subCounties: ['Homa Bay Town (CBD)', 'Mbita (Suba North)', 'Suba South', 'Ndhiwa', 'Rangwe', 'Karachuonyo', 'Kabondo Kasipul', 'Kasipul'] },
-  { name: 'Migori', region: 'Nyanza', subCounties: ['Migori Town (Suna West CBD)', 'Suna East', 'Rongo', 'Awendo', 'Uriri', 'Nyatike', 'Kuria West', 'Kuria East'] },
-  { name: 'Kisii', region: 'Nyanza', subCounties: ['Kisii Central (CBD)', 'Kitutu Chache North', 'Kitutu Chache South', 'Nyaribari Chache', 'Nyaribari Masaba', 'Bobasi', 'Bomachoge Borabu', 'Bomachoge Chache', 'South Mugirango', 'Bonchari'] },
-  { name: 'Nyamira', region: 'Nyanza', subCounties: ['Nyamira Town (CBD)', 'Borabu', 'Manga', 'Masaba North', 'West Mugirango'] },
+  {
+    name: 'Siaya',
+    region: 'Nyanza',
+    subCounties: ['Alego Usonga (Siaya CBD)', 'Bondo', 'Gem', 'Rarieda', 'Ugenya', 'Ugunja']
+  },
+  {
+    name: 'Kisumu',
+    region: 'Nyanza',
+    subCounties: ['Kisumu Central (CBD)', 'Kisumu East', 'Kisumu West', 'Muhoroni', 'Nyakach', 'Nyando', 'Seme']
+  },
+  {
+    name: 'Homa Bay',
+    region: 'Nyanza',
+    subCounties: ['Homa Bay Town (CBD)', 'Kabondo Kasipul', 'Karachuonyo', 'Kasipul', 'Mbita (Suba North)', 'Ndhiwa', 'Rangwe', 'Suba South']
+  },
+  {
+    name: 'Migori',
+    region: 'Nyanza',
+    subCounties: ['Suna West (Migori CBD)', 'Awendo', 'Kuria East', 'Kuria West', 'Nyatike', 'Rongo', 'Suna East', 'Uriri']
+  },
+  {
+    name: 'Kisii',
+    region: 'Nyanza',
+    subCounties: ['Nyaribari Chache (Kisii CBD)', 'Bobasi', 'Bomachoge Borabu', 'Bomachoge Chache', 'Bonchari', 'Kitutu Chache North', 'Kitutu Chache South', 'Nyaribari Masaba', 'South Mugirango']
+  },
+  {
+    name: 'Nyamira',
+    region: 'Nyanza',
+    subCounties: ['West Mugirango (Nyamira CBD)', 'Borabu', 'Manga', 'Masaba North', 'North Mugirango']
+  },
 
   // 8. Nairobi (1)
-  { name: 'Nairobi', region: 'Nairobi', subCounties: ['CBD (Starehe)', 'Westlands', 'Kilimani / Dagoretti', 'Lang\'ata / Karen', 'Embakasi Central', 'Embakasi East', 'Embakasi West', 'Embakasi North', 'Embakasi South', 'Kasarani', 'Ruaraka', 'Roysambu', 'Kamukunji', 'Makadara', 'Kibra', 'Mathare'] }
+  {
+    name: 'Nairobi',
+    region: 'Nairobi',
+    subCounties: [
+      'Starehe (Nairobi CBD)',
+      'Westlands',
+      'Dagoretti North (Kilimani / Kileleshwa)',
+      'Dagoretti South',
+      'Lang\'ata',
+      'Karen',
+      'Kibra',
+      'Roysambu',
+      'Kasarani',
+      'Ruaraka',
+      'Embakasi South',
+      'Embakasi North',
+      'Embakasi Central',
+      'Embakasi East',
+      'Embakasi West',
+      'Makadara',
+      'Kamukunji',
+      'Mathare'
+    ]
+  }
 ];
 
 export async function seed47Counties() {
-  console.log('Seeding and verifying all 47 counties of Kenya...');
+  console.log('[Seed] Seeding and verifying all 47 counties of Kenya...');
 
   // 1. Ensure all 8 regional hubs exist in print_regions
   const regions = [
@@ -103,7 +316,7 @@ export async function seed47Counties() {
   for (const item of KENYA_47_COUNTIES) {
     const hubId = hubMap.get(item.region);
 
-    // Insert county if not exists
+    // Insert or update county
     const countyRes = await pool.query(
       `INSERT INTO counties (name)
        VALUES ($1)
@@ -114,8 +327,9 @@ export async function seed47Counties() {
     const countyId = countyRes.rows[0].id;
     totalCounties++;
 
-    // Map county to print region in county_print_regions
+    // Re-assign county exclusively to its designated print region hub
     if (hubId) {
+      await pool.query('DELETE FROM county_print_regions WHERE county_id = $1', [countyId]);
       await pool.query(
         `INSERT INTO county_print_regions (county_id, print_region_id)
          VALUES ($1, $2)
@@ -124,31 +338,28 @@ export async function seed47Counties() {
       );
     }
 
-    // Insert sub-counties if they do not exist
+    // Insert or update sub-counties
     for (let i = 0; i < item.subCounties.length; i++) {
       const subName = item.subCounties[i];
-      const zone = (i === 0 || subName.toLowerCase().includes('cbd')) ? 'cbd' : 'outskirts';
+      const isCbd = i === 0 || subName.toLowerCase().includes('cbd') || subName.toLowerCase().includes('town');
+      const zone = isCbd ? 'cbd' : 'outskirts';
 
-      const existingSub = await pool.query(
-        'SELECT id FROM sub_counties WHERE county_id = $1 AND name = $2',
-        [countyId, subName]
+      await pool.query(
+        `INSERT INTO sub_counties (county_id, name, zone)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (county_id, name) DO UPDATE SET zone = EXCLUDED.zone`,
+        [countyId, subName, zone]
       );
-
-      if (existingSub.rows.length === 0) {
-        await pool.query(
-          'INSERT INTO sub_counties (county_id, name, zone) VALUES ($1, $2, $3)',
-          [countyId, subName, zone]
-        );
-        totalSubCounties++;
-      }
+      totalSubCounties++;
     }
   }
 
-  console.log(`Successfully verified and seeded all ${totalCounties} counties of Kenya!`);
-  console.log(`Verified sub-counties, added ${totalSubCounties} new sub-counties.`);
+  console.log(`[Seed] Successfully verified and seeded all ${totalCounties} counties of Kenya!`);
+  console.log(`[Seed] Verified and synced ${totalSubCounties} sub-counties.`);
 
   const countCheck = await pool.query('SELECT count(*) FROM counties');
-  console.log(`Total counties in database: ${countCheck.rows[0].count}`);
+  const subCountCheck = await pool.query('SELECT count(*) FROM sub_counties');
+  console.log(`[Seed] Total counties: ${countCheck.rows[0].count} | Total sub-counties: ${subCountCheck.rows[0].count}`);
 
   const distribution = await pool.query(`
     SELECT p.name as hub_name, count(cpr.county_id) as mapped_counties, string_agg(c.name, ', ' ORDER BY c.name) as county_list
@@ -158,7 +369,7 @@ export async function seed47Counties() {
     GROUP BY p.name
     ORDER BY mapped_counties DESC
   `);
-  console.log('Hub county coverage distribution:', distribution.rows);
+  console.log('[Seed] Hub coverage distribution:', distribution.rows);
 }
 
 if (require.main === module) {
@@ -167,3 +378,4 @@ if (require.main === module) {
     process.exit(1);
   });
 }
+
