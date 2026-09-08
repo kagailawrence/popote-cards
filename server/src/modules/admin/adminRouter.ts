@@ -22,6 +22,11 @@ import { query } from '../../config/db'
 import { logAuditEvent } from '../../services/auditService'
 import { orderEvents, emitOrderCreated, emitOrderStatusUpdated } from '../../services/orderEvents'
 import {
+  sendOrderDispatchedEmail,
+  sendOrderDeliveredEmail,
+  sendOrderTrackingUpdateEmail,
+} from '../../services/emailService'
+import {
   listAdminUsers,
   createAdminUser,
   updateAdminUser,
@@ -122,6 +127,40 @@ router.patch('/orders/:id/status', async (req: AuthenticatedRequest, res, next) 
       newValues: { status },
       req,
     })
+
+    // Dispatch automated email notification if customer email exists
+    if (previousOrder?.email) {
+      const recipientNames = previousOrder.items?.map((i: any) => i.recipient_full_names).join(', ') || 'Candidate'
+      const schoolNames = previousOrder.items?.map((i: any) => i.school_name).join(', ') || 'School'
+      const countyName = previousOrder.items?.[0]?.county_name
+
+      if (status === 'dispatched') {
+        sendOrderDispatchedEmail(previousOrder.email, {
+          orderNumber: previousOrder.order_number,
+          recipientNames,
+          schoolNames,
+          countyName,
+        }).catch((e) => console.error('[Email] Dispatched notification error:', e))
+      } else if (status === 'delivered') {
+        sendOrderDeliveredEmail(previousOrder.email, {
+          orderNumber: previousOrder.order_number,
+          recipientNames,
+          schoolNames,
+          countyName,
+        }).catch((e) => console.error('[Email] Delivered notification error:', e))
+      } else if (status === 'printing' || status === 'routed_to_print') {
+        sendOrderTrackingUpdateEmail(previousOrder.email, {
+          orderNumber: previousOrder.order_number,
+          recipientNames,
+          schoolNames,
+          statusTitle: status === 'printing' ? 'Printing in Progress 🖨️' : 'Routed to Print Hub 🏢',
+          statusDescription:
+            status === 'printing'
+              ? `Your card for ${recipientNames} is currently being printed on premium heavy board.`
+              : `Your order has been routed to our regional printing hub for processing.`,
+        }).catch((e) => console.error('[Email] Tracking update notification error:', e))
+      }
+    }
 
     res.json({ success: true, orderId, status })
   } catch (err) {

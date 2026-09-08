@@ -29,51 +29,64 @@ import {
 } from '../../db/queries/catalogQueries'
 import { requireAuth } from '../../middleware/auth'
 import { STORAGE_ROOT, formatImageUrl } from '../../utils/storage'
+import { getOrSetCache, invalidateCache, invalidateCachePattern } from '../../utils/cache'
 
 const router = Router()
+
+async function invalidateCatalogCache(designId?: string) {
+  await Promise.all([
+    invalidateCachePattern('catalog:designs:*'),
+    invalidateCache('catalog:categories:all'),
+    designId ? invalidateCache(`catalog:design:${designId}`) : Promise.resolve(),
+  ])
+}
 
 router.get('/designs', async (req, res, next) => {
   try {
     const { occasion, style, religion } = req.query as { occasion?: string; style?: string; religion?: string }
-    const designs = await getActiveDesigns({ occasion, style, religion })
-    const allDesignCategories = await getAllDesignCategories()
+    const cacheKey = `catalog:designs:${occasion || 'all'}:${style || 'all'}:${religion || 'all'}`
 
-    const enriched = await Promise.all(
-      designs.map(async (d) => {
-        const images = await getDesignImages(d.id)
-        const pages = await getDesignPages(d.id)
-        const zones = await getCustomizationZonesForDesign(d.id)
-        const frontPage = pages.find((p) => p.page_type === 'front')
-        const firstImg = images.length > 0 ? images[0] : null
-        const thumbnailUrl = d.thumbnail_path
-          ? formatImageUrl(d.thumbnail_path)
-          : frontPage
-          ? formatImageUrl(frontPage.storage_path)
-          : firstImg
-          ? formatImageUrl(firstImg.storage_path)
-          : null
+    const enriched = await getOrSetCache(cacheKey, 3600, async () => {
+      const designs = await getActiveDesigns({ occasion, style, religion })
+      const allDesignCategories = await getAllDesignCategories()
 
-        const designCategories = allDesignCategories
-          .filter((dc) => dc.design_id === d.id)
-          .map((dc) => ({ id: dc.category_id, type: dc.type, name: dc.name }))
+      return Promise.all(
+        designs.map(async (d) => {
+          const images = await getDesignImages(d.id)
+          const pages = await getDesignPages(d.id)
+          const zones = await getCustomizationZonesForDesign(d.id)
+          const frontPage = pages.find((p) => p.page_type === 'front')
+          const firstImg = images.length > 0 ? images[0] : null
+          const thumbnailUrl = d.thumbnail_path
+            ? formatImageUrl(d.thumbnail_path)
+            : frontPage
+            ? formatImageUrl(frontPage.storage_path)
+            : firstImg
+            ? formatImageUrl(firstImg.storage_path)
+            : null
 
-        return {
-          ...d,
-          thumbnail_url: thumbnailUrl,
-          categories: designCategories,
-          images: images.map((img) => ({
-            id: img.id,
-            angleOrder: img.angle_order,
-            url: formatImageUrl(img.storage_path),
-          })),
-          pages: pages.map((p) => ({
-            ...p,
-            url: formatImageUrl(p.storage_path),
-          })),
-          zones,
-        }
-      })
-    )
+          const designCategories = allDesignCategories
+            .filter((dc) => dc.design_id === d.id)
+            .map((dc) => ({ id: dc.category_id, type: dc.type, name: dc.name }))
+
+          return {
+            ...d,
+            thumbnail_url: thumbnailUrl,
+            categories: designCategories,
+            images: images.map((img) => ({
+              id: img.id,
+              angleOrder: img.angle_order,
+              url: formatImageUrl(img.storage_path),
+            })),
+            pages: pages.map((p) => ({
+              ...p,
+              url: formatImageUrl(p.storage_path),
+            })),
+            zones,
+          }
+        })
+      )
+    })
 
     res.json({ data: enriched })
   } catch (err) {
@@ -83,25 +96,28 @@ router.get('/designs', async (req, res, next) => {
 
 router.get('/designs/:id', async (req, res, next) => {
   try {
-    const design = await getDesignById(req.params.id as string)
-    if (!design) return res.status(404).json({ error: 'Design not found' })
+    const designId = req.params.id as string
+    const cacheKey = `catalog:design:${designId}`
 
-    const images = await getDesignImages(design.id)
-    const pages = await getDesignPages(design.id)
-    const zones = await getCustomizationZonesForDesign(design.id)
-    const categories = await getDesignCategories(design.id)
-    const frontPage = pages.find((p) => p.page_type === 'front')
-    const firstImg = images.length > 0 ? images[0] : null
-    const thumbnailUrl = design.thumbnail_path
-      ? formatImageUrl(design.thumbnail_path)
-      : frontPage
-      ? formatImageUrl(frontPage.storage_path)
-      : firstImg
-      ? formatImageUrl(firstImg.storage_path)
-      : null
+    const designData = await getOrSetCache(cacheKey, 3600, async () => {
+      const design = await getDesignById(designId)
+      if (!design) return null
 
-    res.json({
-      data: {
+      const images = await getDesignImages(design.id)
+      const pages = await getDesignPages(design.id)
+      const zones = await getCustomizationZonesForDesign(design.id)
+      const categories = await getDesignCategories(design.id)
+      const frontPage = pages.find((p) => p.page_type === 'front')
+      const firstImg = images.length > 0 ? images[0] : null
+      const thumbnailUrl = design.thumbnail_path
+        ? formatImageUrl(design.thumbnail_path)
+        : frontPage
+        ? formatImageUrl(frontPage.storage_path)
+        : firstImg
+        ? formatImageUrl(firstImg.storage_path)
+        : null
+
+      return {
         ...design,
         thumbnail_url: thumbnailUrl,
         categories,
@@ -115,8 +131,11 @@ router.get('/designs/:id', async (req, res, next) => {
           url: formatImageUrl(p.storage_path),
         })),
         zones,
-      },
+      }
     })
+
+    if (!designData) return res.status(404).json({ error: 'Design not found' })
+    res.json({ data: designData })
   } catch (err) {
     next(err)
   }
@@ -131,6 +150,7 @@ router.post('/designs/:id/thumbnail', requireAuth(['admin', 'super_admin']), asy
     }
 
     await updateDesignThumbnail(req.params.id as string, storagePath)
+    await invalidateCatalogCache(req.params.id as string)
 
     res.status(200).json({
       success: true,
@@ -172,6 +192,8 @@ router.post('/designs', requireAuth(['admin', 'super_admin']), async (req, res, 
       compareAtA4Kes !== undefined && compareAtA4Kes !== null ? Number(compareAtA4Kes) : undefined,
       compareAtA3Kes !== undefined && compareAtA3Kes !== null ? Number(compareAtA3Kes) : undefined
     )
+
+    await invalidateCatalogCache(design.id)
     res.status(201).json({ data: design })
   } catch (err) {
     next(err)
@@ -186,6 +208,7 @@ router.patch('/designs/:id/customization-flags', requireAuth(['admin', 'super_ad
       Boolean(allowsCustomMessage),
       Boolean(allowsCustomPhoto)
     )
+    await invalidateCatalogCache(req.params.id as string)
     res.json({ success: true })
   } catch (err) {
     next(err)
@@ -236,6 +259,7 @@ const handleUpdateDesignRoute = async (req: any, res: any, next: any) => {
 
     const updatedCategories = await getDesignCategories(req.params.id as string)
 
+    await invalidateCatalogCache(req.params.id as string)
     res.json({ data: { ...updated, categories: updatedCategories } })
   } catch (err) {
     next(err)
@@ -288,6 +312,8 @@ router.post('/designs/:id/pages', requireAuth(['admin', 'super_admin']), async (
       }
     }
 
+    await invalidateCatalogCache(req.params.id as string)
+
     res.status(201).json({
       data: {
         ...page,
@@ -336,6 +362,8 @@ router.post('/design-pages/:pageId/zones', requireAuth(['admin', 'super_admin'])
       textAlign || 'left'
     )
 
+    await invalidateCatalogCache(page.design_id)
+
     res.status(201).json({ data: zone })
   } catch (err) {
     next(err)
@@ -350,6 +378,7 @@ router.post('/designs/:id/images', requireAuth(['admin', 'super_admin']), async 
     }
 
     const image = await addDesignImage(req.params.id as string, storagePath, angleOrder || 1)
+    await invalidateCatalogCache(req.params.id as string)
     res.status(201).json({ data: image })
   } catch (err) {
     next(err)
@@ -359,6 +388,7 @@ router.post('/designs/:id/images', requireAuth(['admin', 'super_admin']), async 
 router.delete('/designs/:id/images/:imageId', requireAuth(['admin', 'super_admin']), async (req, res, next) => {
   try {
     await deleteDesignImage(req.params.imageId as string)
+    await invalidateCatalogCache(req.params.id as string)
     res.json({ success: true })
   } catch (err) {
     next(err)
@@ -368,6 +398,7 @@ router.delete('/designs/:id/images/:imageId', requireAuth(['admin', 'super_admin
 router.delete('/designs/:id', requireAuth(['admin', 'super_admin']), async (req, res, next) => {
   try {
     await deleteDesign(req.params.id as string)
+    await invalidateCatalogCache(req.params.id as string)
     res.json({ success: true })
   } catch (err) {
     next(err)
@@ -376,7 +407,9 @@ router.delete('/designs/:id', requireAuth(['admin', 'super_admin']), async (req,
 
 router.get('/categories', async (_req, res, next) => {
   try {
-    const categories = await getCategories()
+    const categories = await getOrSetCache('catalog:categories:all', 86400, async () => {
+      return getCategories()
+    })
     res.json({ data: categories })
   } catch (err) {
     next(err)
@@ -390,6 +423,7 @@ router.post('/categories', requireAuth(['admin', 'super_admin']), async (req, re
       return res.status(400).json({ error: 'Valid category type (occasion/style/religion) and name are required' })
     }
     const category = await createCategory(type, name.trim())
+    await invalidateCatalogCache()
     res.status(201).json({ data: category })
   } catch (err) {
     next(err)
@@ -399,6 +433,7 @@ router.post('/categories', requireAuth(['admin', 'super_admin']), async (req, re
 router.delete('/categories/:id', requireAuth(['admin', 'super_admin']), async (req, res, next) => {
   try {
     await deleteCategory(req.params.id as string)
+    await invalidateCatalogCache()
     res.json({ success: true })
   } catch (err) {
     next(err)
@@ -408,7 +443,10 @@ router.delete('/categories/:id', requireAuth(['admin', 'super_admin']), async (r
 router.get('/message-templates', async (req, res, next) => {
   try {
     const occasion = req.query.occasion as string | undefined
-    const templates = await getMessageTemplates(occasion)
+    const cacheKey = `catalog:templates:${occasion || 'all'}`
+    const templates = await getOrSetCache(cacheKey, 86400, async () => {
+      return getMessageTemplates(occasion)
+    })
     res.json({ data: templates })
   } catch (err) {
     next(err)
@@ -416,3 +454,4 @@ router.get('/message-templates', async (req, res, next) => {
 })
 
 export default router
+

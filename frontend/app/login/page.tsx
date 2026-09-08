@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   User, Lock, Mail, Phone, ArrowRight, Sparkles, ShieldCheck,
-  Eye, EyeOff, CheckCircle2, Shield, HeartHandshake, LogIn
+  Eye, EyeOff, CheckCircle2, Shield, HeartHandshake, LogIn, KeyRound, ArrowLeft, Send
 } from 'lucide-react'
 import { useCustomerAuthStore } from '../../store/useCustomerAuthStore'
 import { getCookie, setCookie } from '../../lib/cookies'
@@ -18,7 +18,7 @@ function LoginForm() {
 
   const { user, login: customerLogin, register: customerRegister } = useCustomerAuthStore()
 
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -27,6 +27,10 @@ function LoginForm() {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   
+  // Forgot password specific fields
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -63,16 +67,14 @@ function LoginForm() {
     setLoading(true)
 
     try {
-      // 1. First attempt admin/staff authentication via backend API
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`
-        : '/api/v1/auth/login'
+      const apiUrlBase = process.env.NEXT_PUBLIC_API_URL || ''
 
+      // 1. First attempt admin/staff authentication via backend API
       let isAdminAuthSuccess = false
       let adminData: any = null
 
       try {
-        const adminRes = await fetch(apiUrl, {
+        const adminRes = await fetch(`${apiUrlBase}/api/v1/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email.trim(), password }),
@@ -86,7 +88,6 @@ function LoginForm() {
           }
         }
       } catch (adminErr) {
-        // Backend or network error, fallback to customer auth check
         console.warn('Admin check skipped due to network/endpoint status', adminErr)
       }
 
@@ -101,7 +102,28 @@ function LoginForm() {
         return
       }
 
-      // 2. If not admin, authenticate as customer
+      // 2. Attempt backend customer login
+      try {
+        const custRes = await fetch(`${apiUrlBase}/api/v1/auth/customer/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim(), password }),
+        })
+
+        if (custRes.ok) {
+          const custJson = await custRes.json()
+          if (custJson.data?.customer) {
+            customerLogin(email.trim(), password)
+            toast.success(`Welcome back, ${custJson.data.customer.fullName || 'Customer'}!`)
+            router.push(redirectUrl || '/account')
+            return
+          }
+        }
+      } catch (custErr) {
+        console.warn('Customer backend check fallback to local store', custErr)
+      }
+
+      // 3. Fallback to client state store
       const customerSuccess = customerLogin(email.trim(), password)
       if (customerSuccess) {
         toast.success('Signed in successfully!')
@@ -133,6 +155,29 @@ function LoginForm() {
 
     setLoading(true)
     try {
+      const apiUrlBase = process.env.NEXT_PUBLIC_API_URL || ''
+
+      // Call backend registration endpoint to save account & trigger welcome email
+      try {
+        const res = await fetch(`${apiUrlBase}/api/v1/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName: fullName.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            password,
+          }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          if (data.error) throw new Error(data.error)
+        }
+      } catch (apiErr: any) {
+        console.warn('Backend register call notification:', apiErr.message)
+      }
+
       const success = customerRegister(fullName.trim(), email.trim(), phone.trim(), password)
       if (success) {
         toast.success('Account created successfully! Welcome to Popote Cards.')
@@ -142,6 +187,39 @@ function LoginForm() {
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Registration failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMessage(null)
+
+    if (!forgotEmail.trim()) {
+      setErrorMessage('Please enter your account email address.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const apiUrlBase = process.env.NEXT_PUBLIC_API_URL || ''
+      const res = await fetch(`${apiUrlBase}/api/v1/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setForgotSent(true)
+        toast.success('Password reset link sent to your email!')
+      } else {
+        throw new Error(data.error || 'Failed to send password reset email.')
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Error requesting password reset.')
     } finally {
       setLoading(false)
     }
@@ -176,49 +254,57 @@ function LoginForm() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex p-3 rounded-2xl bg-pink-50 dark:bg-pink-950/50 text-pink-600 dark:text-pink-400 mb-1 border border-pink-100 dark:border-pink-900/40 shadow-sm">
-            <Sparkles className="w-6 h-6" />
+            {authMode === 'forgot' ? <KeyRound className="w-6 h-6" /> : <Sparkles className="w-6 h-6" />}
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            {authMode === 'login' ? 'Welcome to Popote Cards' : 'Create an Account'}
+            {authMode === 'login'
+              ? 'Welcome to Popote Cards'
+              : authMode === 'register'
+              ? 'Create an Account'
+              : 'Reset Your Password'}
           </h1>
           <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-xs mx-auto">
             {authMode === 'login'
               ? 'One unified sign-in for customer orders, tracking, and staff portal access.'
-              : 'Join to order personalized success cards and track high school deliveries across Kenya.'}
+              : authMode === 'register'
+              ? 'Join to order personalized success cards and track high school deliveries across Kenya.'
+              : 'Enter your account email and we will send you a secure password reset link.'}
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-zinc-800/80 text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMode('login')
-              setErrorMessage(null)
-            }}
-            className={`py-2 rounded-lg transition-all ${
-              authMode === 'login'
-                ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
-                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMode('register')
-              setErrorMessage(null)
-            }}
-            className={`py-2 rounded-lg transition-all ${
-              authMode === 'register'
-                ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
-                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            Create Account
-          </button>
-        </div>
+        {/* Tab Switcher (Visible on login & register) */}
+        {authMode !== 'forgot' && (
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-zinc-800/80 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('login')
+                setErrorMessage(null)
+              }}
+              className={`py-2 rounded-lg transition-all cursor-pointer ${
+                authMode === 'login'
+                  ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('register')
+                setErrorMessage(null)
+              }}
+              className={`py-2 rounded-lg transition-all cursor-pointer ${
+                authMode === 'register'
+                  ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+        )}
 
         {/* Error Alert */}
         {errorMessage && (
@@ -229,7 +315,7 @@ function LoginForm() {
         )}
 
         {/* SIGN IN FORM */}
-        {authMode === 'login' ? (
+        {authMode === 'login' && (
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
@@ -252,6 +338,18 @@ function LoginForm() {
                   <Lock className="w-3.5 h-3.5 text-pink-500" />
                   Password
                 </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotEmail(email)
+                    setAuthMode('forgot')
+                    setErrorMessage(null)
+                    setForgotSent(false)
+                  }}
+                  className="text-xs font-semibold text-pink-600 dark:text-pink-400 hover:underline cursor-pointer"
+                >
+                  Forgot password?
+                </button>
               </div>
               <div className="relative">
                 <input
@@ -288,8 +386,10 @@ function LoginForm() {
               )}
             </button>
           </form>
-        ) : (
-          /* REGISTRATION FORM */
+        )}
+
+        {/* REGISTRATION FORM */}
+        {authMode === 'register' && (
           <form onSubmit={handleRegister} className="space-y-3.5">
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
@@ -369,37 +469,115 @@ function LoginForm() {
           </form>
         )}
 
-        {/* Quick Demo Shortcuts */}
-        <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block text-center">
-            Instant Demo Shortcuts
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={handleDemoCustomerLogin}
-              className="px-2.5 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 transition-all text-left flex items-center gap-1.5"
-            >
-              <HeartHandshake className="w-3.5 h-3.5 text-pink-500 shrink-0" />
-              <div className="truncate">
-                <span className="block font-bold">Demo Customer</span>
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">Amina Muthoni</span>
+        {/* FORGOT PASSWORD FORM */}
+        {authMode === 'forgot' && (
+          <div className="space-y-4">
+            {forgotSent ? (
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-xs font-medium space-y-2 text-center animate-scale-in">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Check Your Inbox</h3>
+                <p>
+                  We have sent a secure password reset link to <strong>{forgotEmail}</strong>.
+                </p>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  Please click the link in your email within 60 minutes to choose a new password.
+                </p>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('login')
+                      setForgotSent(false)
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all cursor-pointer"
+                  >
+                    Return to Sign In
+                  </button>
+                </div>
               </div>
-            </button>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-pink-500" />
+                    Account Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="name@example.co.ke"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-950 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all"
+                  />
+                </div>
 
-            <button
-              type="button"
-              onClick={handleDemoAdminLogin}
-              className="px-2.5 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 transition-all text-left flex items-center gap-1.5"
-            >
-              <Shield className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-              <div className="truncate">
-                <span className="block font-bold">Demo Admin</span>
-                <span className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">Staff / Dispatch</span>
-              </div>
-            </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-sm shadow-md shadow-pink-500/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Send Reset Link</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('login')
+                      setErrorMessage(null)
+                    }}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-zinc-400 hover:text-pink-600 dark:hover:text-pink-400 transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back to Sign In</span>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* Quick Demo Shortcuts */}
+        {authMode !== 'forgot' && (
+          <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block text-center">
+              Instant Demo Shortcuts
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleDemoCustomerLogin}
+                className="px-2.5 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 transition-all text-left flex items-center gap-1.5 cursor-pointer"
+              >
+                <HeartHandshake className="w-3.5 h-3.5 text-pink-500 shrink-0" />
+                <div className="truncate">
+                  <span className="block font-bold">Demo Customer</span>
+                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">Amina Muthoni</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDemoAdminLogin}
+                className="px-2.5 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 transition-all text-left flex items-center gap-1.5 cursor-pointer"
+              >
+                <Shield className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <div className="truncate">
+                  <span className="block font-bold">Demo Admin</span>
+                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 truncate">Staff / Dispatch</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Trust Footer */}
         <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 pt-1">

@@ -1,4 +1,5 @@
 import { query, queryOne } from '../../config/db'
+import { escapeSqlLike } from '../../utils/sanitize'
 
 export interface AdminUserRecord {
   id: string
@@ -100,7 +101,8 @@ export async function listCustomers(search?: string, limit = 100, offset = 0): P
   const params: any[] = []
 
   if (search && search.trim()) {
-    params.push(`%${search.trim()}%`)
+    const escaped = escapeSqlLike(search.trim())
+    params.push(`%${escaped}%`)
     searchClause = `WHERE c.phone ILIKE $${params.length} OR c.email ILIKE $${params.length}`
   }
 

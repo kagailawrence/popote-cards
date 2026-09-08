@@ -81,6 +81,7 @@ router.get('/:type/:filename', (req, res) => {
   // Set explicit security, Content-Type, and caching headers
   res.setHeader('Content-Type', contentType)
   res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Content-Security-Policy', "default-src 'none'")
   res.setHeader('Content-Disposition', `inline; filename="${path.basename(filePath)}"`)
 
   if (type === 'design-images') {

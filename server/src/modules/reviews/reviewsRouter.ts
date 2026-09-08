@@ -9,8 +9,13 @@ import {
   deleteReview,
 } from '../../db/queries/reviewQueries'
 import { requireAuth } from '../../middleware/auth'
+import { getOrSetCache, invalidateCachePattern } from '../../utils/cache'
 
 const router = Router()
+
+async function invalidateReviewsCache() {
+  await invalidateCachePattern('reviews:*')
+}
 
 const createReviewSchema = z.object({
   customerName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -34,9 +39,15 @@ router.get('/', async (req, res, next) => {
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0
 
+    const cacheKey = `reviews:approved:${category || 'all'}:${minRating || 0}:${sort || 'newest'}:${limit}:${offset}`
+
     const [reviews, stats] = await Promise.all([
-      getApprovedReviews({ category, minRating, sort, limit, offset }),
-      getReviewStats(),
+      getOrSetCache(cacheKey, 900, async () => {
+        return getApprovedReviews({ category, minRating, sort, limit, offset })
+      }),
+      getOrSetCache('reviews:stats', 1800, async () => {
+        return getReviewStats()
+      }),
     ])
 
     res.json({
@@ -51,7 +62,9 @@ router.get('/', async (req, res, next) => {
 // Public: Get aggregate statistics only
 router.get('/stats', async (_req, res, next) => {
   try {
-    const stats = await getReviewStats()
+    const stats = await getOrSetCache('reviews:stats', 1800, async () => {
+      return getReviewStats()
+    })
     res.json({ data: stats })
   } catch (err) {
     next(err)
@@ -70,6 +83,8 @@ router.post('/', async (req, res, next) => {
     }
 
     const createdReview = await createReview(parse.data)
+    await invalidateReviewsCache()
+
     res.status(201).json({
       data: createdReview,
       message: 'Thank you! Your review has been submitted successfully.',
@@ -87,7 +102,9 @@ router.get('/admin/all', requireAuth(['admin', 'super_admin']), async (req, res,
 
     const [reviews, stats] = await Promise.all([
       getAllReviewsAdmin({ status, limit }),
-      getReviewStats(),
+      getOrSetCache('reviews:stats', 1800, async () => {
+        return getReviewStats()
+      }),
     ])
 
     res.json({
@@ -114,6 +131,8 @@ router.patch('/admin/:id', requireAuth(['admin', 'super_admin']), async (req, re
       return res.status(404).json({ error: 'Review not found' })
     }
 
+    await invalidateReviewsCache()
+
     res.json({
       data: updated,
       message: 'Review updated successfully',
@@ -131,6 +150,8 @@ router.delete('/admin/:id', requireAuth(['admin', 'super_admin']), async (req, r
     if (!deleted) {
       return res.status(404).json({ error: 'Review not found' })
     }
+
+    await invalidateReviewsCache()
 
     res.json({
       success: true,

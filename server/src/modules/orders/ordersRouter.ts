@@ -1,6 +1,12 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { findOrCreateCustomer, createOrderTransaction, getOrderTrackingTimeline, getOrderSummary } from '../../db/queries/orderQueries'
+import {
+  findOrCreateCustomer,
+  createOrderTransaction,
+  getOrderTrackingTimeline,
+  getOrderSummary,
+  getOrderDetailsWithItems,
+} from '../../db/queries/orderQueries'
 import { normalizePhoneNumber, isValidKenyanPhone } from '../../utils/phoneUtils'
 import { getSubCountyById, getPrintRegionForCounty } from '../../db/queries/locationQueries'
 import { getCalculatedPrice, getDeliveryPricing } from '../../db/queries/pricingQueries'
@@ -10,11 +16,16 @@ import jwt from 'jsonwebtoken'
 import { BadRequestError, NotFoundError } from '../../utils/errors'
 import { emitOrderCreated } from '../../services/orderEvents'
 import { streamOrderResourcePackage } from '../../services/orderPackageService'
+import {
+  sendOrderConfirmationEmail,
+  sendOrderTrackingUpdateEmail,
+} from '../../services/emailService'
 
 const router = Router()
 
 const JWT_ACCESS_SECRET = process.env.JWT_SECRET || 'super-secret-development-jwt-key-32-chars-min'
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-32-chars-min'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000'
 
 export const orderItemStudentSchema = z.object({
   design_id: z.string().uuid('Valid design ID is required'),
@@ -50,6 +61,7 @@ const createOrderSchema = z.object({
       message: 'Invalid Kenyan phone number format. Must be a valid Kenyan mobile number (e.g. 07XXXXXXXX or 2547XXXXXXXX).',
     }),
     email: z.string().email().optional(),
+    fullName: z.string().optional(),
   }),
   items: z.array(orderItemStudentSchema).min(1, 'Order must contain at least one card item with student information'),
 })
@@ -119,6 +131,32 @@ router.post('/', async (req, res, next) => {
       console.error('Failed to emit order:created event', e)
     }
 
+    // Trigger Order Confirmation Email if customer has an email address
+    const recipientEmail = customer.email || dbCustomer.email
+    if (recipientEmail) {
+      const emailItems = processedItems.map((pi) => ({
+        recipientName: pi.recipient_full_names,
+        schoolName: pi.school_name,
+        admissionNumber: pi.admission_number,
+        size: pi.size,
+        unitPriceKes: pi.unit_price_kes,
+        messagePreview: pi.message_body,
+      }))
+
+      sendOrderConfirmationEmail(recipientEmail, {
+        orderNumber: result.order.order_number,
+        customerName: customer.fullName || dbCustomer.full_name || 'Customer',
+        customerPhone: dbCustomer.phone,
+        totalAmountKes: totalAmount,
+        cardsSubtotalKes: cardsSubtotal,
+        deliveryFeeKes: deliveryTotal,
+        items: emailItems,
+        trackingUrl: `${FRONTEND_URL}/order/track?orderNumber=${result.order.order_number}&phone=${encodeURIComponent(dbCustomer.phone)}`,
+      }).catch((emailErr) => {
+        console.error('[Email] Failed to dispatch order confirmation email:', emailErr)
+      })
+    }
+
     res.status(201).json({
       data: {
         orderId: result.order.id,
@@ -130,8 +168,8 @@ router.post('/', async (req, res, next) => {
         sessionTokens: {
           accessToken: customerTokens.accessToken,
           sessionToken: customerTokens.sessionToken,
-          expiresIn: '5m',
-          sessionExpiresIn: '1d',
+          expiresIn: '24h',
+          sessionExpiresIn: '24h',
         },
       },
     })
@@ -152,7 +190,6 @@ router.get('/timeline/:orderNumber', async (req, res, next) => {
       }
       normalizedPhone = normalizePhoneNumber(phone)
     } else if (req.headers.authorization?.startsWith('Bearer ')) {
-      // Optional customer token authentication from Bearer header
       const token = req.headers.authorization.split(' ')[1]
       try {
         let decoded: CustomerPayload
@@ -176,6 +213,42 @@ router.get('/timeline/:orderNumber', async (req, res, next) => {
     }
 
     res.json({ data: tracking })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Send or resend tracking info to user's email
+router.post('/timeline/:orderNumber/send-email', async (req, res, next) => {
+  try {
+    const { orderNumber } = req.params
+    const { email } = req.body
+
+    if (!email || !z.string().email().safeParse(email).success) {
+      return res.status(400).json({ error: 'Valid recipient email address is required' })
+    }
+
+    const tracking = await getOrderTrackingTimeline(orderNumber as string)
+    if (!tracking) {
+      return res.status(404).json({ error: `Order #${orderNumber} not found` })
+    }
+
+    const recipientNames = tracking.items?.map((i: any) => i.recipient_full_names).join(', ') || 'Student'
+    const schoolNames = tracking.items?.map((i: any) => i.school_name).join(', ') || 'School'
+    const statusFormatted = (tracking.order.status || 'Received').replace(/_/g, ' ').toUpperCase()
+
+    const trackingUrl = `${FRONTEND_URL}/order/track?orderNumber=${orderNumber}`
+
+    await sendOrderTrackingUpdateEmail(email, {
+      orderNumber: tracking.order.order_number,
+      recipientNames,
+      schoolNames,
+      statusTitle: `Current Status: ${statusFormatted}`,
+      statusDescription: `Your order #${orderNumber} is currently at status: ${statusFormatted}. You can track the real-time fulfillment progress using the button below.`,
+      trackingUrl,
+    })
+
+    res.json({ success: true, message: `Tracking details sent to ${email}` })
   } catch (err) {
     next(err)
   }

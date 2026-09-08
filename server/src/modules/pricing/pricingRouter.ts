@@ -8,13 +8,20 @@ import {
 } from '../../db/queries/pricingQueries'
 import { getSubCountyById } from '../../db/queries/locationQueries'
 import { requireAuth } from '../../middleware/auth'
+import { getOrSetCache, invalidateCachePattern } from '../../utils/cache'
 
 const router = Router()
+
+async function invalidatePricingCache() {
+  await invalidateCachePattern('pricing:*')
+}
 
 // GET full card size / zone price matrix
 router.get('/matrix', async (_req, res, next) => {
   try {
-    const matrix = await getPriceMatrix()
+    const matrix = await getOrSetCache('pricing:matrix', 43200, async () => {
+      return getPriceMatrix()
+    })
     res.json({ data: matrix })
   } catch (err) {
     next(err)
@@ -30,6 +37,7 @@ router.patch('/matrix/:id', requireAuth(['admin', 'super_admin']), async (req, r
     }
 
     const updated = await updatePriceRule(req.params.id as string, Number(amountKes))
+    await invalidatePricingCache()
     res.json({ data: updated })
   } catch (err) {
     next(err)
@@ -39,7 +47,9 @@ router.patch('/matrix/:id', requireAuth(['admin', 'super_admin']), async (req, r
 // GET delivery pricing for CBD and Outskirts zones (Public)
 router.get('/delivery', async (_req, res, next) => {
   try {
-    const pricing = await getDeliveryPricing()
+    const pricing = await getOrSetCache('pricing:delivery', 43200, async () => {
+      return getDeliveryPricing()
+    })
     res.json({ data: pricing })
   } catch (err) {
     next(err)
@@ -57,6 +67,7 @@ router.patch('/delivery', requireAuth(['admin', 'super_admin']), async (req, res
         return res.status(400).json({ error: 'Valid positive amountKes is required' })
       }
       const updated = await updateDeliveryPricing(zone, Number(amountKes), label)
+      await invalidatePricingCache()
       const current = await getDeliveryPricing()
       return res.json({ data: { updated, ...current } })
     }
@@ -76,6 +87,7 @@ router.patch('/delivery', requireAuth(['admin', 'super_admin']), async (req, res
       await updateDeliveryPricing('outskirts', Number(outskirts))
     }
 
+    await invalidatePricingCache()
     const current = await getDeliveryPricing()
     res.json({ data: current })
   } catch (err) {
@@ -106,7 +118,9 @@ router.get('/calculate', async (req, res, next) => {
 
     const hasPhoto = isCustomPhoto === 'true'
     const price = await getCalculatedPrice(size, hasPhoto, zone)
-    const delivery = await getDeliveryPricing()
+    const delivery = await getOrSetCache('pricing:delivery', 43200, async () => {
+      return getDeliveryPricing()
+    })
     const deliveryFee = zone === 'outskirts' ? delivery.outskirts : delivery.cbd
 
     res.json({

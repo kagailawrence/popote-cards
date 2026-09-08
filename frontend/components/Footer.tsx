@@ -25,9 +25,10 @@ export function Footer() {
             <h4 className="text-slate-900 dark:text-white font-bold mb-3">Quick Navigation</h4>
             <ul className="space-y-2 text-xs">
               <li><Link href="/catalog" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Shop Collection</Link></li>
+              <li><Link href="/order/track" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors font-medium">Track Orders</Link></li>
               <li><Link href="/reviews" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Customer Reviews & Stories</Link></li>
               <li><Link href="/cart" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">View Cart</Link></li>
-              <li><Link href="/dispute" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Track or Dispute Order</Link></li>
+              <li><Link href="/dispute" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Help & Disputes</Link></li>
               <li><Link href="/admin" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Admin Portal</Link></li>
             </ul>
           </div>
@@ -43,10 +44,15 @@ export function Footer() {
 
           <div>
             <h4 className="text-slate-900 dark:text-white font-bold mb-3">Support</h4>
-            <p className="text-slate-500 dark:text-zinc-500 text-xs">Need assistance? Track your order or raise a dispute directly on our platform.</p>
-            <Link href="/dispute" className="inline-block mt-3 px-4 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-pink-600 dark:text-pink-400 hover:border-pink-500 text-xs font-semibold shadow-sm transition-all">
-              Customer Support & Disputation
-            </Link>
+            <p className="text-slate-500 dark:text-zinc-500 text-xs">Need assistance? Track your order progress in real-time or raise a dispute directly on our platform.</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Link href="/order/track" className="inline-block px-3.5 py-1.5 rounded-xl bg-pink-50 dark:bg-pink-950/60 border border-pink-200 dark:border-pink-800/80 text-pink-700 dark:text-pink-300 hover:bg-pink-100 text-xs font-semibold shadow-sm transition-all">
+                Track Order
+              </Link>
+              <Link href="/dispute" className="inline-block px-3.5 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-pink-500 text-xs font-semibold shadow-sm transition-all">
+                Dispute Order
+              </Link>
+            </div>
           </div>
         </div>
 

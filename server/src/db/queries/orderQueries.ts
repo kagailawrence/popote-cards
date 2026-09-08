@@ -6,6 +6,7 @@ export interface Customer {
   id: string
   phone: string
   email: string | null
+  full_name?: string | null
   created_at: Date
 }
 
@@ -47,11 +48,17 @@ export interface OrderItem {
 }
 
 export async function findOrCreateCustomer(phone: string, email?: string): Promise<Customer> {
-  const existing = await queryOne<Customer>(`SELECT id, phone, email, created_at FROM customers WHERE phone = $1`, [phone])
-  if (existing) return existing
+  const existing = await queryOne<Customer>(`SELECT id, phone, email, full_name, created_at FROM customers WHERE phone = $1`, [phone])
+  if (existing) {
+    if (email && !existing.email) {
+      await query(`UPDATE customers SET email = $1 WHERE id = $2`, [email, existing.id])
+      existing.email = email
+    }
+    return existing
+  }
 
   return (await queryOne<Customer>(
-    `INSERT INTO customers (phone, email) VALUES ($1, $2) RETURNING id, phone, email, created_at`,
+    `INSERT INTO customers (phone, email) VALUES ($1, $2) RETURNING id, phone, email, full_name, created_at`,
     [phone, email ?? null]
   ))!
 }

@@ -21,6 +21,7 @@ import { inventoryRouter } from './modules/inventory/inventoryRouter'
 import reviewsRouter from './modules/reviews/reviewsRouter'
 import { errorHandler } from './middleware/errorHandler'
 import { apiLimiter } from './middleware/rateLimiter'
+import { xssSanitizer } from './middleware/xssSanitizer'
 import { httpLogger } from './utils/logger'
 
 export const app = express()
@@ -42,6 +43,8 @@ app.use(
       },
     },
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    xContentTypeOptions: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   })
 )
 
@@ -86,6 +89,10 @@ app.use((req, _res, next) => {
 
 app.use(compression())
 app.use(express.json({ limit: '100kb' }))
+app.use(express.urlencoded({ extended: true, limit: '100kb' }))
+
+// Automatic XSS payload sanitization across req.body, req.query, and req.params
+app.use(xssSanitizer)
 
 // Structured HTTP access logging
 app.use(httpLogger)
