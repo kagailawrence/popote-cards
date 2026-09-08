@@ -36,19 +36,33 @@ export default function CartPage() {
 
   const [counties, setCounties] = useState<County[]>([])
   const [subCounties, setSubCounties] = useState<SubCounty[]>([])
+  const [deliveryRates, setDeliveryRates] = useState<{ cbd: number; outskirts: number }>({ cbd: 150, outskirts: 300 })
 
   useEffect(() => {
     setMounted(true)
-    async function loadLocations() {
+    async function loadLocationsAndPricing() {
       try {
-        const res = await fetch('/api/v1/locations/counties')
-        const data = await res.json()
-        if (data.data) setCounties(data.data)
+        const [countiesRes, delRes] = await Promise.all([
+          fetch('/api/v1/locations/counties'),
+          fetch('/api/v1/pricing/delivery'),
+        ])
+        const cData = await countiesRes.json()
+        if (cData.data) setCounties(cData.data)
+
+        if (delRes.ok) {
+          const dData = await delRes.json()
+          if (dData.data) {
+            setDeliveryRates({
+              cbd: Number(dData.data.cbd) || 150,
+              outskirts: Number(dData.data.outskirts) || 300,
+            })
+          }
+        }
       } catch (err) {
-        console.error('Failed to load counties', err)
+        console.error('Failed to load counties or delivery rates', err)
       }
     }
-    loadLocations()
+    loadLocationsAndPricing()
   }, [])
 
   useEffect(() => {
@@ -158,6 +172,7 @@ export default function CartPage() {
       countyName: countyObj?.name || editingItem.countyName,
       subCountyId: editSubCountyId,
       subCountyName: subCountyObj?.name || editingItem.subCountyName,
+      zone: subCountyObj?.zone || editingItem.zone || 'cbd',
     })
 
     setEditingItem(null)
@@ -293,26 +308,44 @@ export default function CartPage() {
         <div className="lg:col-span-1 p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-6 shadow-sm dark:shadow-xl">
           <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Order Summary</h2>
 
-          <div className="space-y-3 text-sm border-b border-zinc-200 dark:border-zinc-800 pb-4">
-            <div className="flex justify-between text-slate-600 dark:text-zinc-400">
-              <span>Subtotal ({items.length} cards)</span>
-              <span>KSh {totalAmount.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-slate-600 dark:text-zinc-400">
-              <span>Delivery Fee</span>
-              <span className="text-green-600 dark:text-green-400 font-semibold">Included</span>
-            </div>
-          </div>
+          {(() => {
+            const cardsSubtotal = items.reduce((sum, i) => sum + i.unitPriceKes, 0)
+            const deliverySubtotal = items.reduce((sum, i) => {
+              const fee = i.zone === 'outskirts' ? deliveryRates.outskirts : deliveryRates.cbd
+              return sum + fee
+            }, 0)
+            const grandTotal = cardsSubtotal + deliverySubtotal
 
-          <div className="flex justify-between items-center text-lg font-extrabold text-slate-900 dark:text-white">
-            <span>Total</span>
-            <span className="text-pink-600 dark:text-pink-500">KSh {totalAmount.toLocaleString()}</span>
-          </div>
+            return (
+              <>
+                <div className="space-y-3 text-sm border-b border-zinc-200 dark:border-zinc-800 pb-4">
+                  <div className="flex justify-between text-slate-600 dark:text-zinc-400">
+                    <span>Cards Subtotal ({items.length} item{items.length > 1 ? 's' : ''})</span>
+                    <span className="font-bold text-slate-900 dark:text-white">KSh {cardsSubtotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600 dark:text-zinc-400">
+                    <div>
+                      <span className="block">School Delivery Fee</span>
+                      <span className="text-[11px] text-slate-400 dark:text-zinc-500">
+                        ({items.filter((i) => i.zone === 'outskirts').length} Outskirts, {items.filter((i) => i.zone !== 'outskirts').length} CBD)
+                      </span>
+                    </div>
+                    <span className="font-bold text-slate-900 dark:text-white">KSh {deliverySubtotal.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-lg font-extrabold text-slate-900 dark:text-white">
+                  <span>Total Payable</span>
+                  <span className="text-pink-600 dark:text-pink-500">KSh {grandTotal.toLocaleString()}</span>
+                </div>
+              </>
+            )
+          })()}
 
           <button
             onClick={handleProceedToCheckout}
             disabled={!allItemsValid}
-            className="w-full py-4 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-extrabold text-sm shadow-lg shadow-pink-600/30 flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-extrabold text-sm shadow-lg shadow-pink-600/30 flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Proceed to Checkout <ArrowRight className="w-4 h-4" />
           </button>

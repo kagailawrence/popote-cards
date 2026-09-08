@@ -490,20 +490,28 @@ export default function DesignsTab({ token }: DesignsTabProps) {
     )
   }
 
-  const handleDeleteDesign = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this design template? This will remove associated pages.')) return
-    try {
-      const res = await fetch(`/api/v1/catalog/designs/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to delete design')
-      toast.success('Design template deleted')
-      fetchData()
-    } catch (err: any) {
-      toast.error(err.message || 'Error deleting design')
-    }
+  const handleDeleteDesign = (id: string) => {
+    toast('Delete this design template?', {
+      description: 'This will remove associated card pages and previews.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/catalog/designs/${id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Failed to delete design')
+            toast.success('Design template deleted')
+            fetchData()
+          } catch (err: any) {
+            toast.error(err.message || 'Error deleting design')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   // --- Category Actions ---
@@ -536,20 +544,27 @@ export default function DesignsTab({ token }: DesignsTabProps) {
     }
   }
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Delete this category?')) return
-    try {
-      const res = await fetch(`/api/v1/catalog/categories/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to delete category')
-      toast.success('Category removed')
-      fetchData()
-    } catch (err: any) {
-      toast.error(err.message || 'Error deleting category')
-    }
+  const handleDeleteCategory = (id: string) => {
+    toast('Delete this category?', {
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/catalog/categories/${id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Failed to delete category')
+            toast.success('Category removed')
+            fetchData()
+          } catch (err: any) {
+            toast.error(err.message || 'Error deleting category')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   // Filter designs

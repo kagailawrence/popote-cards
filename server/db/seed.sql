@@ -4,9 +4,9 @@
 -- 1. Default Admins (Password: Admin123!)
 INSERT INTO admins (email, password_hash, role)
 VALUES 
-  ('admin@popotecards.co.ke', 'b2/NSrzbh0Kzyvr.tw61XRjJLN3fBAfC2XA8v4kGBMkr5yO', 'super_admin'),
-  ('admin@fair.co.ke', 'b2/NSrzbh0Kzyvr.tw61XRjJLN3fBAfC2XA8v4kGBMkr5yO', 'super_admin')
-ON CONFLICT (email) DO NOTHING;
+  ('admin@popotecards.co.ke', '$2b$10$elTN5nMAhYwIkKeLj7qtrOpsoUyFIb5VeaCz9urkIKP7yb0FzDjgO', 'super_admin'),
+  ('admin@fair.co.ke', '$2b$10$elTN5nMAhYwIkKeLj7qtrOpsoUyFIb5VeaCz9urkIKP7yb0FzDjgO', 'super_admin')
+ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
 -- 2. Print Regions (Hubs)
 INSERT INTO print_regions (name, contact_person, phone, whatsapp_number, email, address, status, cost_per_card_kes)

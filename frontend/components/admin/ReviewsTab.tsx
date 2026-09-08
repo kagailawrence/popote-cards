@@ -84,20 +84,28 @@ export default function ReviewsTab({ token }: ReviewsTabProps) {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to permanently delete this customer review?')) return
-    try {
-      const res = await fetch(`/api/v1/reviews/admin/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error('Failed to delete review')
+  const handleDelete = (id: string) => {
+    toast('Permanently delete this review?', {
+      description: 'This review will be removed from customer ratings.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/reviews/admin/${id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            if (!res.ok) throw new Error('Failed to delete review')
 
-      toast.success('Review permanently deleted.')
-      fetchReviews()
-    } catch (err: any) {
-      toast.error(err.message || 'Delete failed')
-    }
+            toast.success('Review permanently deleted.')
+            fetchReviews()
+          } catch (err: any) {
+            toast.error(err.message || 'Delete failed')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   const filteredReviews = reviews.filter((r) => {

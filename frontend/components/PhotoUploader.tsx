@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Upload, X, Check, Image as ImageIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface PhotoUploaderProps {
   onPhotoUploaded: (storagePath: string, previewUrl: string) => void
@@ -11,13 +12,11 @@ interface PhotoUploaderProps {
 export function PhotoUploader({ onPhotoUploaded, onPhotoCleared }: PhotoUploaderProps) {
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setError(null)
     setUploading(true)
 
     const formData = new FormData()
@@ -35,8 +34,9 @@ export function PhotoUploader({ onPhotoUploaded, onPhotoCleared }: PhotoUploader
       const fullUrl = data.data.url
       setPreviewUrl(fullUrl)
       onPhotoUploaded(data.data.storagePath, fullUrl)
+      toast.success('Custom candidate photo attached!')
     } catch (err: any) {
-      setError(err.message || 'Failed to upload photo')
+      toast.error(err.message || 'Failed to upload photo')
     } finally {
       setUploading(false)
     }
@@ -44,8 +44,8 @@ export function PhotoUploader({ onPhotoUploaded, onPhotoCleared }: PhotoUploader
 
   const handleClear = () => {
     setPreviewUrl(null)
-    setError(null)
     onPhotoCleared()
+    toast.info('Custom photo removed')
   }
 
   return (
@@ -89,8 +89,6 @@ export function PhotoUploader({ onPhotoUploaded, onPhotoCleared }: PhotoUploader
           <span className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1">Max 5MB • Streamed securely</span>
         </label>
       )}
-
-      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
     </div>
   )
 }

@@ -241,21 +241,29 @@ export default function UsersTab({ token }: UsersTabProps) {
     }
   }
 
-  const handleDeleteAdmin = async (user: AdminUser) => {
-    if (!confirm(`Are you sure you want to permanently revoke and delete staff account '${user.email}'?`)) return
-    try {
-      const res = await fetch(`/api/v1/admin/users/${user.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to delete user')
+  const handleDeleteAdmin = (user: AdminUser) => {
+    toast(`Revoke staff account '${user.email}'?`, {
+      description: 'This will permanently delete access for this staff user.',
+      action: {
+        label: 'Revoke',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/admin/users/${user.id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Failed to delete user')
 
-      toast.success(`Staff user ${user.email} removed.`)
-      setAdminUsers(prev => prev.filter(u => u.id !== user.id))
-    } catch (err: any) {
-      toast.error(err.message || 'Error deleting admin user')
-    }
+            toast.success(`Staff user ${user.email} removed.`)
+            setAdminUsers(prev => prev.filter(u => u.id !== user.id))
+          } catch (err: any) {
+            toast.error(err.message || 'Error deleting admin user')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   // --- Customer History Modal ---
@@ -331,21 +339,28 @@ export default function UsersTab({ token }: UsersTabProps) {
     }
   }
 
-  const handleDeleteRider = async (rider: Rider) => {
-    if (!confirm(`Delete rider '${rider.name}'?`)) return
-    try {
-      const res = await fetch(`/api/v1/admin/riders/${rider.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to delete rider')
+  const handleDeleteRider = (rider: Rider) => {
+    toast(`Delete rider '${rider.name}'?`, {
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/admin/riders/${rider.id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Failed to delete rider')
 
-      toast.success(`Rider ${rider.name} deleted.`)
-      setRiders(prev => prev.filter(r => r.id !== rider.id))
-    } catch (err: any) {
-      toast.error(err.message || 'Error deleting rider')
-    }
+            toast.success(`Rider ${rider.name} deleted.`)
+            setRiders(prev => prev.filter(r => r.id !== rider.id))
+          } catch (err: any) {
+            toast.error(err.message || 'Error deleting rider')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   // Filtered lists

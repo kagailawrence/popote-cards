@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { findOrCreateCustomer, createOrderTransaction, getOrderTrackingTimeline, getOrderSummary } from '../../db/queries/orderQueries'
 import { normalizePhoneNumber, isValidKenyanPhone } from '../../utils/phoneUtils'
 import { getSubCountyById, getPrintRegionForCounty } from '../../db/queries/locationQueries'
-import { getCalculatedPrice } from '../../db/queries/pricingQueries'
+import { getCalculatedPrice, getDeliveryPricing } from '../../db/queries/pricingQueries'
 import { getDesignById } from '../../db/queries/catalogQueries'
-import { generateCustomerTokens, CustomerPayload } from '../../middleware/auth'
+import { generateCustomerTokens, CustomerPayload, requireAuth } from '../../middleware/auth'
 import jwt from 'jsonwebtoken'
 import { BadRequestError, NotFoundError } from '../../utils/errors'
 import { emitOrderCreated } from '../../services/orderEvents'
@@ -65,7 +65,9 @@ router.post('/', async (req, res, next) => {
     const normalizedPhone = normalizePhoneNumber(customer.phone)
     const dbCustomer = await findOrCreateCustomer(normalizedPhone, customer.email)
 
-    let totalAmount = 0
+    const deliveryPricing = await getDeliveryPricing()
+    let cardsSubtotal = 0
+    let deliveryTotal = 0
     const processedItems = []
 
     for (const item of items) {
@@ -92,9 +94,12 @@ router.post('/', async (req, res, next) => {
         unitPrice = await getCalculatedPrice(item.size, hasPhoto, subCounty.zone)
       }
 
+      const itemDeliveryFee = subCounty.zone === 'outskirts' ? deliveryPricing.outskirts : deliveryPricing.cbd
+      cardsSubtotal += unitPrice
+      deliveryTotal += itemDeliveryFee
+
       const printRegion = await getPrintRegionForCounty(item.county_id)
 
-      totalAmount += unitPrice
       processedItems.push({
         ...item,
         unit_price_kes: unitPrice,
@@ -102,6 +107,7 @@ router.post('/', async (req, res, next) => {
       })
     }
 
+    const totalAmount = cardsSubtotal + deliveryTotal
     const result = await createOrderTransaction(dbCustomer.id, totalAmount, processedItems)
     const customerTokens = generateCustomerTokens(dbCustomer.id, dbCustomer.phone)
 
@@ -118,6 +124,8 @@ router.post('/', async (req, res, next) => {
         orderId: result.order.id,
         orderNumber: result.order.order_number,
         totalAmountKes: result.order.total_amount_kes,
+        cardsSubtotalKes: cardsSubtotal,
+        deliveryFeeKes: deliveryTotal,
         status: result.order.status,
         sessionTokens: {
           accessToken: customerTokens.accessToken,
@@ -173,14 +181,18 @@ router.get('/timeline/:orderNumber', async (req, res, next) => {
   }
 })
 
-// Customer & Public Download endpoint for complete order resource package (.zip)
-router.get('/:orderNumber/download-package', async (req, res, next) => {
-  try {
-    const { orderNumber } = req.params
-    await streamOrderResourcePackage(orderNumber as string, res)
-  } catch (err) {
-    next(err)
+// Admin & Print Hub Manager Download endpoint for complete order resource package (.zip)
+router.get(
+  '/:orderNumber/download-package',
+  requireAuth(['admin', 'super_admin', 'rider_manager']),
+  async (req, res, next) => {
+    try {
+      const { orderNumber } = req.params
+      await streamOrderResourcePackage(orderNumber as string, res)
+    } catch (err) {
+      next(err)
+    }
   }
-})
+)
 
 export default router

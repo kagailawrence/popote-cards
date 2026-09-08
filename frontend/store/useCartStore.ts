@@ -20,23 +20,29 @@ export interface CartItem {
   countyName: string
   subCountyId: string
   subCountyName: string
+  zone?: 'cbd' | 'outskirts'
   religion?: 'christian' | 'muslim' | 'other'
   unitPriceKes: number
 }
 
 interface CartStore {
   items: CartItem[]
+  deliveryRates: { cbd: number; outskirts: number }
   addItem: (item: CartItem) => void
   removeItem: (id: string) => void
   updateItem: (id: string, updates: Partial<CartItem>) => void
   clearCart: () => void
-  getTotalAmount: () => number
+  setDeliveryRates: (rates: { cbd: number; outskirts: number }) => void
+  getCardsSubtotal: () => number
+  getDeliveryTotal: (customRates?: { cbd: number; outskirts: number }) => number
+  getTotalAmount: (customRates?: { cbd: number; outskirts: number }) => number
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      deliveryRates: { cbd: 150, outskirts: 300 },
       addItem: (item) => set((state) => ({ items: [...state.items, item] })),
       removeItem: (id) => set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
       updateItem: (id, updates) =>
@@ -44,7 +50,20 @@ export const useCartStore = create<CartStore>()(
           items: state.items.map((i) => (i.id === id ? { ...i, ...updates } : i)),
         })),
       clearCart: () => set({ items: [] }),
-      getTotalAmount: () => get().items.reduce((sum, item) => sum + item.unitPriceKes, 0),
+      setDeliveryRates: (rates) => set({ deliveryRates: rates }),
+      getCardsSubtotal: () => get().items.reduce((sum, item) => sum + item.unitPriceKes, 0),
+      getDeliveryTotal: (customRates) => {
+        const rates = customRates || get().deliveryRates || { cbd: 150, outskirts: 300 }
+        return get().items.reduce((sum, item) => {
+          const fee = item.zone === 'outskirts' ? rates.outskirts : rates.cbd
+          return sum + fee
+        }, 0)
+      },
+      getTotalAmount: (customRates) => {
+        const cardsTotal = get().items.reduce((sum, item) => sum + item.unitPriceKes, 0)
+        const deliveryTotal = get().getDeliveryTotal(customRates)
+        return cardsTotal + deliveryTotal
+      },
     }),
     {
       name: 'popote_cart_storage',

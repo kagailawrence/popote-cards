@@ -10,9 +10,9 @@ services:
     container_name: popote-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-popote_cards}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./server/db:/server-db:ro
@@ -57,6 +57,8 @@ services:
       dockerfile: Dockerfile
     container_name: popote-server
     restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-4000}:4000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.popote-api.rule=Host(`popote.dazzcode.com`) && (PathPrefix(`/api`) || PathPrefix(`/storage`))"
@@ -67,11 +69,11 @@ services:
     environment:
       PORT: 4000
       NODE_ENV: ${NODE_ENV:-production}
-      FRONTEND_URL: https://popote.dazzcode.com
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      FRONTEND_URL: ${FRONTEND_URL:-https://popote.dazzcode.com}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-popote_cards}
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-037f66b9c95517116f4e0e6aab2c043ebf3a626c52e2d282b6bc4d40a424658b}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-df2658125511e9ad477264264a9fd370ddca2ec9e3bfe60ac82f423d30a07885}
       MPESA_ENV: ${MPESA_ENV:-sandbox}
     volumes:
       - ./storage:/app/storage

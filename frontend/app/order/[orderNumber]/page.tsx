@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { CheckCircle2, Clock, Truck, Printer, MapPin, FileCheck, Search, AlertCircle, Star, Package, RefreshCw, Download } from 'lucide-react'
+import { CheckCircle2, Clock, Truck, Printer, MapPin, FileCheck, Search, AlertCircle, Star } from 'lucide-react'
 import { isValidKenyanPhone, normalizePhoneNumber, sanitizePhoneInput } from '../../../lib/phoneUtils'
 import { ReviewModal } from '../../../components/ReviewModal'
 
@@ -13,7 +13,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ orderN
   const [phoneInput, setPhoneInput] = useState(phoneParam)
   const [orderData, setOrderData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const [downloadingZip, setDownloadingZip] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isReviewOpen, setIsReviewOpen] = useState(false)
 
@@ -57,29 +56,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ orderN
     fetchTracking(resolvedParams.orderNumber, phoneInput)
   }
 
-  const handleDownloadZip = async () => {
-    setDownloadingZip(true)
-    try {
-      const url = `/api/v1/orders/${encodeURIComponent(resolvedParams.orderNumber)}/download-package${phoneInput ? `?phone=${encodeURIComponent(normalizePhoneNumber(phoneInput))}` : ''}`
-      const res = await fetch(url)
-      if (!res.ok) {
-        throw new Error('Failed to generate order resource package')
-      }
-      const blob = await res.blob()
-      const downloadUrl = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = `Order_${resolvedParams.orderNumber}_Design_and_Resources_Package.zip`
-      a.click()
-      URL.revokeObjectURL(downloadUrl)
-      toast.success('Your order design package (.zip) has been downloaded!')
-    } catch (err: any) {
-      toast.error(err.message || 'Error downloading compressed package')
-    } finally {
-      setDownloadingZip(false)
-    }
-  }
-
   const stages = [
     { key: 'pending_payment', label: 'Order Placed', icon: Clock },
     { key: 'paid', label: 'Payment Confirmed', icon: CheckCircle2 },
@@ -112,22 +88,6 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ orderN
             Tracking Order <strong className="text-pink-600 dark:text-pink-400">{resolvedParams.orderNumber}</strong>
           </p>
         </div>
-
-        {orderData && (
-          <button
-            onClick={handleDownloadZip}
-            disabled={downloadingZip}
-            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-purple-500/20 transition-transform hover:scale-105 disabled:opacity-50 self-start sm:self-auto"
-            title="Download compressed ZIP containing design templates, 4-page print PDFs, candidate photos, and production manifest"
-          >
-            {downloadingZip ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Package className="w-4 h-4" />
-            )}
-            Download Design & Resources (.zip)
-          </button>
-        )}
       </div>
 
       {!orderData && (

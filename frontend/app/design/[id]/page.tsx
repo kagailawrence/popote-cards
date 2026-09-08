@@ -50,6 +50,7 @@ export default function DesignCustomizerPage({ params }: { params: Promise<{ id:
 
   // Dynamic Pricing State
   const [unitPriceKes, setUnitPriceKes] = useState<number>(850)
+  const [deliveryRates, setDeliveryRates] = useState<{ cbd: number; outskirts: number }>({ cbd: 150, outskirts: 300 })
   const [sizePrices, setSizePrices] = useState<{ A5: number; A4: number; A3: number }>({
     A5: 500,
     A4: 850,
@@ -84,6 +85,21 @@ export default function DesignCustomizerPage({ params }: { params: Promise<{ id:
         }
         if (countiesData.data) setCounties(countiesData.data)
         if (templatesData.data) setTemplates(templatesData.data)
+
+        try {
+          const delRes = await fetch('/api/v1/pricing/delivery')
+          if (delRes.ok) {
+            const delData = await delRes.json()
+            if (delData.data) {
+              setDeliveryRates({
+                cbd: Number(delData.data.cbd) || 150,
+                outskirts: Number(delData.data.outskirts) || 300,
+              })
+            }
+          }
+        } catch (delErr) {
+          console.warn('Delivery rates load fallback', delErr)
+        }
       } catch (err: any) {
         setError('Failed to load card details')
       } finally {
@@ -212,6 +228,7 @@ export default function DesignCustomizerPage({ params }: { params: Promise<{ id:
       countyName: countyObj?.name || '',
       subCountyId: selectedSubCountyId,
       subCountyName: subCountyObj?.name || '',
+      zone: subCountyObj?.zone || 'cbd',
       religion: (religion as any) || undefined,
       unitPriceKes,
     })
@@ -670,11 +687,35 @@ export default function DesignCustomizerPage({ params }: { params: Promise<{ id:
                 >
                   <option value="">Select Sub-County</option>
                   {subCounties.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.zone.toUpperCase()})</option>
+                    <option key={s.id} value={s.id}>{s.name} ({s.zone === 'outskirts' ? 'Outskirts / Rural' : 'Near CBD / Urban'})</option>
                   ))}
                 </select>
               </div>
             </div>
+
+            {/* School Delivery Zone Badge */}
+            {selectedSubCountyId && (() => {
+              const activeSub = subCounties.find((s) => s.id === selectedSubCountyId)
+              const isOutskirts = activeSub?.zone === 'outskirts'
+              const fee = isOutskirts ? deliveryRates.outskirts : deliveryRates.cbd
+              return (
+                <div className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-all ${
+                  isOutskirts
+                    ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50 text-amber-900 dark:text-amber-200'
+                    : 'bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-900/50 text-indigo-900 dark:text-indigo-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${isOutskirts ? 'bg-amber-500' : 'bg-indigo-500'}`} />
+                    <span className="font-bold">
+                      Delivery Location: {isOutskirts ? 'Outskirts / Rural Area' : 'Town Center / Near CBD'}
+                    </span>
+                  </div>
+                  <span className="font-black text-xs">
+                    Delivery Fee: KES {fee.toLocaleString()}
+                  </span>
+                </div>
+              )
+            })()}
           </div>
 
           <button

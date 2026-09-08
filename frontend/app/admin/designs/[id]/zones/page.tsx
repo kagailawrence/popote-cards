@@ -7,6 +7,7 @@ import {
   Image as ImageIcon, Sparkles, ExternalLink, DollarSign, Tag, Percent
 } from 'lucide-react'
 import { getCookie } from '@/lib/cookies'
+import { toast } from 'sonner'
 
 interface PageRecord {
   id: string
@@ -48,8 +49,6 @@ export default function AdminDesignStudioPage() {
 
   // UI state
   const [loading, setLoading] = useState(true)
-  const [statusMsg, setStatusMsg] = useState<string | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Page Upload state
   const [uploadingPage, setUploadingPage] = useState<string | null>(null)
@@ -96,6 +95,7 @@ export default function AdminDesignStudioPage() {
       }
     } catch (err) {
       console.error('Failed to load design specs', err)
+      toast.error('Failed to load design studio specs')
     } finally {
       setLoading(false)
     }
@@ -124,10 +124,9 @@ export default function AdminDesignStudioPage() {
 
   const handleUploadPageImage = async (pageType: 'front' | 'inside_left' | 'inside_right' | 'back', file: File) => {
     setUploadingPage(pageType)
-    setErrorMsg(null)
     const token = getAuthToken()
     if (!token) {
-      setErrorMsg('Admin authentication required. Please log in to your admin account to upload artworks.')
+      toast.error('Admin authentication required. Please log in to your admin account to upload artworks.')
       setUploadingPage(null)
       return
     }
@@ -163,7 +162,7 @@ export default function AdminDesignStudioPage() {
         throw new Error('Your session has expired. Please log in again to renew your 24-hour admin session.')
       }
       if (pageRes.ok) {
-        setStatusMsg(`Updated ${pageType.replace('_', ' ')} page artwork successfully!`)
+        toast.success(`Updated ${pageType.replace('_', ' ')} page artwork successfully!`)
         if (pageData.data) {
           setPages((prev) => {
             const next = prev.filter((p) => p.page_type !== pageType)
@@ -175,7 +174,7 @@ export default function AdminDesignStudioPage() {
         throw new Error(pageData.error || 'Failed to save page record')
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error updating page')
+      toast.error(err.message || 'Error updating page')
     } finally {
       setUploadingPage(null)
     }
@@ -186,10 +185,9 @@ export default function AdminDesignStudioPage() {
     if (!file) return
 
     setUploadingThumbnail(true)
-    setErrorMsg(null)
     const token = getAuthToken()
     if (!token) {
-      setErrorMsg('Admin authentication required. Please log in to your admin account to upload thumbnails.')
+      toast.error('Admin authentication required. Please log in to your admin account to upload thumbnails.')
       setUploadingThumbnail(false)
       return
     }
@@ -224,7 +222,7 @@ export default function AdminDesignStudioPage() {
         throw new Error('Your session has expired. Please log in again to renew your 24-hour admin session.')
       }
       if (thumbRes.ok) {
-        setStatusMsg('Updated catalog thumbnail image successfully!')
+        toast.success('Updated catalog thumbnail image successfully!')
         if (thumbData.thumbnail_url) {
           setDesign((prev: any) => prev ? { ...prev, thumbnail_url: thumbData.thumbnail_url } : prev)
         }
@@ -233,7 +231,7 @@ export default function AdminDesignStudioPage() {
         throw new Error(thumbData.error || 'Failed to save thumbnail')
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Thumbnail upload failed')
+      toast.error(err.message || 'Thumbnail upload failed')
     } finally {
       setUploadingThumbnail(false)
     }
@@ -242,7 +240,6 @@ export default function AdminDesignStudioPage() {
   const handleSavePricingAndStatus = async (e: React.FormEvent) => {
     e.preventDefault()
     setSavingPricing(true)
-    setErrorMsg(null)
     const token = getAuthToken()
     try {
       const pA5 = cleanPriceInput(priceA5Kes, 500)
@@ -287,10 +284,10 @@ export default function AdminDesignStudioPage() {
       }
       if (!res.ok) throw new Error(data.error || 'Failed to update pricing and state')
 
-      setStatusMsg('Card pricing, status & settings saved successfully!')
+      toast.success('Card pricing, status & settings saved successfully!')
       fetchDesignData()
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to save settings')
+      toast.error(err.message || 'Failed to save settings')
     } finally {
       setSavingPricing(false)
     }
@@ -356,26 +353,6 @@ export default function AdminDesignStudioPage() {
           </a>
         </div>
       </div>
-
-      {/* Notifications */}
-      {statusMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>{statusMsg}</span>
-          </div>
-          <button onClick={() => setStatusMsg(null)} className="text-emerald-600 hover:text-emerald-800 text-xs font-bold">Dismiss</button>
-        </div>
-      )}
-      {errorMsg && (
-        <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 text-xs font-semibold flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-          <button onClick={() => setErrorMsg(null)} className="text-red-600 hover:text-red-800 text-xs font-bold">Dismiss</button>
-        </div>
-      )}
 
       {/* --- 1. 3-SIZE CARD PRICING & STATUS CONFIGURATION --- */}
       <form onSubmit={handleSavePricingAndStatus} className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-6 shadow-sm">

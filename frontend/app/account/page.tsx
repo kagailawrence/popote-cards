@@ -12,20 +12,12 @@ import {
 import { useCustomerAuthStore, CustomerOrder } from '../../store/useCustomerAuthStore'
 import { getCookie } from '../../lib/cookies'
 import { ReviewModal } from '../../components/ReviewModal'
+import { toast } from 'sonner'
 
 export default function CustomerAccountPage() {
   const router = useRouter()
-  const { user, orders, login, register, logout, updateProfile } = useCustomerAuthStore()
+  const { user, orders, logout, updateProfile } = useCustomerAuthStore()
   const [mounted, setMounted] = useState(false)
-
-  // Auth form states
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [fullName, setFullName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [authError, setAuthError] = useState('')
 
   // Dashboard active tab
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses' | 'profile'>('orders')
@@ -37,7 +29,6 @@ export default function CustomerAccountPage() {
   const [editCounty, setEditCounty] = useState('')
   const [editSubCounty, setEditSubCounty] = useState('')
   const [editSchool, setEditSchool] = useState('')
-  const [saveSuccessToast, setSaveSuccessToast] = useState(false)
   const [reviewingOrder, setReviewingOrder] = useState<CustomerOrder | null>(null)
 
   useEffect(() => {
@@ -52,11 +43,10 @@ export default function CustomerAccountPage() {
       router.push('/admin')
       return
     }
-    const token = getCookie('popote_customer_token') || getCookie('fair_customer_token')
-    if (token && !user) {
-      login('customer@fair.co.ke', 'demo1234')
+    if (!user) {
+      router.replace('/login?redirect=/account')
     }
-  }, [user, login, router])
+  }, [user, router])
 
   useEffect(() => {
     if (user) {
@@ -70,33 +60,6 @@ export default function CustomerAccountPage() {
 
   if (!mounted) return null
 
-  // Handle Login submission
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setAuthError('')
-    if (!email || !password) {
-      setAuthError('Please fill in both email and password.')
-      return
-    }
-    login(email, password)
-  }
-
-  // Handle Registration submission
-  const handleRegisterSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setAuthError('')
-    if (!fullName || !email || !phone || !password) {
-      setAuthError('Please complete all required fields.')
-      return
-    }
-    register(fullName, email, phone, password)
-  }
-
-  // Handle Instant Demo Sign-In
-  const handleDemoSignIn = () => {
-    login('amina.muthoni@gmail.com', 'demo1234')
-  }
-
   // Save Profile Changes
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,199 +71,30 @@ export default function CustomerAccountPage() {
       defaultSchool: editSchool,
     })
     setIsEditingProfile(false)
-    setSaveSuccessToast(true)
-    setTimeout(() => setSaveSuccessToast(false), 3000)
+    toast.success('Account details & saved delivery preferences updated!')
   }
 
-  // LOGGED-OUT AUTHENTICATION SCREEN
+  const handleSignOut = () => {
+    logout()
+    toast.success('Signed out successfully')
+    router.push('/login')
+  }
+
+  // LOGGED-OUT REDIRECT SCREEN
   if (!user) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-slate-50 dark:bg-zinc-950 transition-colors">
-        <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-scale-in">
-          {/* Top Brand & Title */}
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-              {authMode === 'login' ? 'Welcome Back' : 'Create Customer Account'}
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
-              {authMode === 'login'
-                ? 'Track your orders, save school addresses, and manage your delivery details.'
-                : 'Sign up to easily send success cards to students across Kenya.'}
-            </p>
-          </div>
-
-          {/* Mode Switcher Tabs */}
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-zinc-800/80 text-xs font-bold">
-            <button
-              onClick={() => {
-                setAuthMode('login')
-                setAuthError('')
-              }}
-              className={`py-2 rounded-lg transition-all ${authMode === 'login'
-                  ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => {
-                setAuthMode('register')
-                setAuthError('')
-              }}
-              className={`py-2 rounded-lg transition-all ${authMode === 'register'
-                  ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-            >
-              Create Account
-            </button>
-          </div>
-
-          {authError && (
-            <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/80 text-red-600 dark:text-red-400 text-xs font-semibold text-center">
-              {authError}
-            </div>
-          )}
-
-          {/* LOGIN FORM */}
-          {authMode === 'login' ? (
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">Email Address</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="amina@example.com"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-3 py-2.5 focus:border-pink-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">Password</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-10 py-2.5 focus:border-pink-500 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded-lg focus:outline-none"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs shadow-lg shadow-pink-600/30 transition-transform active:scale-95 flex items-center justify-center gap-2"
-              >
-                Sign In to My Account <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-          ) : (
-            /* REGISTER FORM */
-            <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">Full Name</label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Amina Muthoni"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-3 py-2.5 focus:border-pink-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">Email Address</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="amina@example.com"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-3 py-2.5 focus:border-pink-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">M-Pesa / Phone Number</label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
-                  <input
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+254 712 345 678"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-3 py-2.5 focus:border-pink-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">Password</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-10 py-2.5 focus:border-pink-500 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded-lg focus:outline-none"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs shadow-lg shadow-pink-600/30 transition-transform active:scale-95 flex items-center justify-center gap-2"
-              >
-                Create Account <UserCheck className="w-4 h-4" />
-              </button>
-            </form>
-          )}
-
-          {/* Quick Demo Sign-in Shortcut */}
-          <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 text-center">
-            <button
-              onClick={handleDemoSignIn}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-pink-50 dark:hover:bg-pink-950/40 text-slate-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 font-bold text-xs transition-colors flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-pink-500" /> Instant Demo Customer Sign-In
-            </button>
-          </div>
-        </div>
+      <div className="min-h-[75vh] flex flex-col items-center justify-center px-4 py-12 text-center space-y-4">
+        <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Redirecting to Sign In...</h2>
+        <p className="text-xs text-slate-500 dark:text-zinc-400">
+          Please sign in or create an account to view your dashboard.
+        </p>
+        <Link
+          href="/login?redirect=/account"
+          className="mt-2 px-5 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs shadow-md transition-all"
+        >
+          Go to Sign In
+        </Link>
       </div>
     )
   }
@@ -317,25 +111,18 @@ export default function CustomerAccountPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-slide-up">
-      {/* Save Profile Success Toast */}
-      {saveSuccessToast && (
-        <div className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-emerald-600 text-white text-xs font-bold flex items-center gap-3 shadow-2xl animate-scale-in">
-          <CheckCircle2 className="w-5 h-5" />
-          <span>Account details & saved delivery preferences updated!</span>
-        </div>
-      )}
-
       {/* Header Profile Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-pink-600 via-purple-700 to-indigo-900 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="flex items-center gap-4 z-10">
-          <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white text-xl font-extrabold flex items-center justify-center shadow-lg shrink-0">
+        {/* Background decorative glow */}
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex items-center gap-5 z-10">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center font-black text-2xl sm:text-3xl shadow-inner">
             {initials}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-[10px] font-extrabold uppercase tracking-widest text-amber-200">
-                VERIFIED CUSTOMER
-              </span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-[11px] font-semibold mb-1">
+              <Sparkles className="w-3 h-3 text-yellow-300" />
               <span className="text-xs text-white/80">Member since {user.memberSince || '2026'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold mt-1">Hello, {user.name}!</h1>
@@ -355,7 +142,7 @@ export default function CustomerAccountPage() {
             Order New Card <ArrowRight className="w-3.5 h-3.5" />
           </Link>
           <button
-            onClick={logout}
+            onClick={handleSignOut}
             className="px-4 py-2.5 rounded-xl bg-black/30 hover:bg-black/50 text-white font-bold text-xs backdrop-blur-md border border-white/20 transition-colors flex items-center gap-1.5"
           >
             <LogOut className="w-3.5 h-3.5" /> Sign Out

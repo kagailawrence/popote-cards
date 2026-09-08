@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   Lock, LogOut, CheckCircle2, Clock, Printer, Truck, DollarSign,
@@ -16,10 +17,12 @@ import DesignsTab from '../../components/admin/DesignsTab'
 import OrdersTab from '../../components/admin/OrdersTab'
 import ReviewsTab from '../../components/admin/ReviewsTab'
 import UsersTab from '../../components/admin/UsersTab'
+import PricingTab from '../../components/admin/PricingTab'
 import ManualOrderModal from '../../components/admin/ManualOrderModal'
 import { getCookie, setCookie, eraseCookie } from '../../lib/cookies'
 
 export default function AdminPage() {
+  const router = useRouter()
   const [token, setToken] = useState<string | null>(null)
   const [email, setEmail] = useState('admin@popotecards.co.ke')
   const [password, setPassword] = useState('Admin123!')
@@ -135,6 +138,18 @@ export default function AdminPage() {
         fetch('/api/v1/disputes', { headers: { Authorization: `Bearer ${jwtToken}` } }),
         fetch('/api/v1/pricing/matrix'),
       ])
+
+      if (statsRes.status === 401 || ordersRes.status === 401) {
+        setToken(null)
+        eraseCookie('popote_admin_token')
+        eraseCookie('fair_admin_token')
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('popote_admin_token')
+          localStorage.removeItem('fair_admin_token')
+        }
+        toast.error('Admin session expired. Please log in again.')
+        return
+      }
 
       const statsData = await statsRes.json()
       const ordersData = await ordersRes.json()
@@ -605,6 +620,8 @@ export default function AdminPage() {
                 localStorage.removeItem('popote_admin_token')
                 localStorage.removeItem('fair_admin_token')
               }
+              toast.success('Logged out from Admin Portal')
+              router.push('/login')
             }}
             className="px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-zinc-800 flex items-center gap-1.5 transition-colors shadow-sm"
           >
@@ -714,6 +731,17 @@ export default function AdminPage() {
         >
           <Users className="w-4 h-4 text-purple-400" /> User Management
         </button>
+
+        <button
+          onClick={() => setActiveTab('pricing')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all ${
+            activeTab === 'pricing'
+              ? 'bg-pink-600 text-white shadow-md shadow-pink-600/30'
+              : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white shadow-sm'
+          }`}
+        >
+          <DollarSign className="w-4 h-4 text-emerald-500" /> Pricing & Delivery
+        </button>
       </div>
 
       {/* Tab 1: Analytics & Overview */}
@@ -749,6 +777,11 @@ export default function AdminPage() {
       {/* Tab: Counties & Sub-Counties Management */}
       {activeTab === 'locations' && token && (
         <LocationsTab token={token} />
+      )}
+
+      {/* Tab: Pricing & Delivery Fee Rules */}
+      {activeTab === 'pricing' && token && (
+        <PricingTab token={token} />
       )}
 
       {/* Tab: User Management (Staff, Customers, Riders) */}

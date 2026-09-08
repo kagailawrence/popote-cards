@@ -135,20 +135,28 @@ export default function LocationsTab({ token }: LocationsTabProps) {
     }
   }
 
-  const handleDeleteCounty = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this county? All associated sub-counties may become orphaned.')) return
-    try {
-      const res = await fetch(`/api/v1/locations/counties/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to delete county')
-      toast.success('County removed')
-      fetchData()
-    } catch (err: any) {
-      toast.error(err.message || 'Error deleting county')
-    }
+  const handleDeleteCounty = (id: string) => {
+    toast('Delete this county?', {
+      description: 'All associated sub-counties may become orphaned.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/locations/counties/${id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Failed to delete county')
+            toast.success('County removed')
+            fetchData()
+          } catch (err: any) {
+            toast.error(err.message || 'Error deleting county')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   // --- Sub-Counties Actions ---
@@ -212,20 +220,27 @@ export default function LocationsTab({ token }: LocationsTabProps) {
     }
   }
 
-  const handleDeleteSubCounty = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this sub-county?')) return
-    try {
-      const res = await fetch(`/api/v1/locations/sub-counties/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to delete sub-county')
-      toast.success('Sub-county removed')
-      fetchData()
-    } catch (err: any) {
-      toast.error(err.message || 'Error deleting sub-county')
-    }
+  const handleDeleteSubCounty = (id: string) => {
+    toast('Delete this sub-county?', {
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/locations/sub-counties/${id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            const data = await res.json()
+            if (!res.ok) throw new Error(data.error || 'Failed to delete sub-county')
+            toast.success('Sub-county removed')
+            fetchData()
+          } catch (err: any) {
+            toast.error(err.message || 'Error deleting sub-county')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   // --- Filtering ---

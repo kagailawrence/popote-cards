@@ -36,11 +36,29 @@ export default function CheckoutPage() {
   const [reviewComment, setReviewComment] = useState('')
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
   const [reviewSubmitted, setReviewSubmitted] = useState(false)
+  const [deliveryRates, setDeliveryRates] = useState<{ cbd: number; outskirts: number }>({ cbd: 150, outskirts: 300 })
 
   const pollCountRef = useRef(0)
 
   useEffect(() => {
     setMounted(true)
+    async function loadDeliveryPricing() {
+      try {
+        const res = await fetch('/api/v1/pricing/delivery')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.data) {
+            setDeliveryRates({
+              cbd: Number(data.data.cbd) || 150,
+              outskirts: Number(data.data.outskirts) || 300,
+            })
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load delivery rates on checkout', err)
+      }
+    }
+    loadDeliveryPricing()
   }, [])
 
   // Poll payment status every 2 seconds when checkoutRequestId is active (max 120 seconds)
@@ -97,7 +115,12 @@ export default function CheckoutPage() {
     return null
   }
 
-  const totalAmount = getTotalAmount()
+  const cardsSubtotal = items.reduce((sum, item) => sum + item.unitPriceKes, 0)
+  const deliverySubtotal = items.reduce((sum, item) => {
+    const fee = item.zone === 'outskirts' ? deliveryRates.outskirts : deliveryRates.cbd
+    return sum + fee
+  }, 0)
+  const totalAmount = cardsSubtotal + deliverySubtotal
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -348,18 +371,48 @@ export default function CheckoutPage() {
         <div className="lg:col-span-1 p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-4 shadow-sm">
           <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Items in Order ({items.length})</h3>
           <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-            {items.map((item) => (
-              <div key={item.id} className="text-xs border-b border-zinc-200 dark:border-zinc-800 pb-2 space-y-0.5">
-                <p className="font-bold text-slate-900 dark:text-white">{item.designName} ({item.size})</p>
-                <p className="text-slate-600 dark:text-zinc-400">For: {item.recipientFullNames} • {item.schoolName}</p>
-                <p className="text-pink-600 dark:text-pink-400 font-bold">KSh {item.unitPriceKes.toLocaleString()}</p>
-              </div>
-            ))}
+            {items.map((item) => {
+              const isOutskirts = item.zone === 'outskirts'
+              const fee = isOutskirts ? deliveryRates.outskirts : deliveryRates.cbd
+              return (
+                <div key={item.id} className="text-xs border-b border-zinc-200 dark:border-zinc-800 pb-2.5 space-y-1">
+                  <div className="flex justify-between items-start">
+                    <p className="font-bold text-slate-900 dark:text-white">{item.designName} ({item.size})</p>
+                    <span className="text-pink-600 dark:text-pink-400 font-extrabold">KSh {item.unitPriceKes.toLocaleString()}</span>
+                  </div>
+                  <p className="text-slate-600 dark:text-zinc-400">
+                    For: <strong>{item.recipientFullNames}</strong> • {item.schoolName}
+                  </p>
+                  <div className="flex items-center justify-between text-[11px] pt-0.5">
+                    <span className={`px-2 py-0.5 rounded-full font-bold uppercase text-[9px] ${
+                      isOutskirts 
+                        ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300' 
+                        : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300'
+                    }`}>
+                      {isOutskirts ? 'Outskirts Zone' : 'CBD Zone'}
+                    </span>
+                    <span className="text-slate-500 dark:text-zinc-400">
+                      Delivery: KSh {fee.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
-          <div className="pt-2 flex justify-between font-extrabold text-slate-900 dark:text-white text-base border-t border-zinc-200 dark:border-zinc-800">
-            <span>Total Payable</span>
-            <span className="text-pink-600 dark:text-pink-500">KSh {totalAmount.toLocaleString()}</span>
+          <div className="space-y-2 pt-2 border-t border-zinc-200 dark:border-zinc-800 text-xs">
+            <div className="flex justify-between text-slate-600 dark:text-zinc-400">
+              <span>Cards Subtotal:</span>
+              <span className="font-bold text-slate-900 dark:text-white">KSh {cardsSubtotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-slate-600 dark:text-zinc-400">
+              <span>School Delivery:</span>
+              <span className="font-bold text-slate-900 dark:text-white">KSh {deliverySubtotal.toLocaleString()}</span>
+            </div>
+            <div className="pt-2 flex justify-between font-extrabold text-slate-900 dark:text-white text-base border-t border-zinc-200 dark:border-zinc-800">
+              <span>Total Payable</span>
+              <span className="text-pink-600 dark:text-pink-500">KSh {totalAmount.toLocaleString()}</span>
+            </div>
           </div>
         </div>
       </div>

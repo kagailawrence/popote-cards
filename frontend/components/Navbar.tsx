@@ -150,17 +150,35 @@ export function Navbar() {
             <ThemeToggle variant="icon" />
           </div>
 
-          {/* Universal Login / Account Button */}
-          <Link
-            href={isAdminLoggedIn ? '/admin' : '/account'}
-            aria-label="User Account"
-            className="p-2 sm:px-3.5 sm:py-2 rounded-full sm:rounded-xl bg-slate-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-pink-500/50 text-slate-800 dark:text-zinc-200 transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm"
-          >
-            <User className="w-4 h-4 text-pink-500" />
-            <span className="hidden sm:inline">
-              {user ? user.name.split(' ')[0] : 'Login'}
-            </span>
-          </Link>
+          {/* Universal Login / Account / Admin Button */}
+          {isAdminLoggedIn ? (
+            <Link
+              href="/admin"
+              aria-label="Admin Portal"
+              className="p-2 sm:px-3.5 sm:py-2 rounded-full sm:rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 hover:border-indigo-500/50 text-indigo-700 dark:text-indigo-300 transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm"
+            >
+              <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="hidden sm:inline">Admin Portal</span>
+            </Link>
+          ) : user ? (
+            <Link
+              href="/account"
+              aria-label="User Account"
+              className="p-2 sm:px-3.5 sm:py-2 rounded-full sm:rounded-xl bg-slate-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-pink-500/50 text-slate-800 dark:text-zinc-200 transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm"
+            >
+              <User className="w-4 h-4 text-pink-500" />
+              <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              aria-label="Sign In"
+              className="p-2 sm:px-3.5 sm:py-2 rounded-full sm:rounded-xl bg-slate-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-pink-500/50 text-slate-800 dark:text-zinc-200 transition-all flex items-center gap-1.5 text-xs font-bold shadow-sm"
+            >
+              <User className="w-4 h-4 text-pink-500" />
+              <span className="hidden sm:inline">Sign In</span>
+            </Link>
+          )}
 
           <Link
             href="/cart"
@@ -194,14 +212,34 @@ export function Navbar() {
             <ThemeToggle variant="icon" />
           </div>
 
-          <Link
-            href={isAdminLoggedIn ? '/admin' : '/account'}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"
-          >
-            <User className="w-4 h-4 text-pink-500" />
-            {user ? `Account (${user.name})` : 'Login / Register'}
-          </Link>
+          {isAdminLoggedIn ? (
+            <Link
+              href="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2"
+            >
+              <User className="w-4 h-4 text-indigo-500" />
+              Admin Portal
+            </Link>
+          ) : user ? (
+            <Link
+              href="/account"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"
+            >
+              <User className="w-4 h-4 text-pink-500" />
+              Account ({user.name})
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"
+            >
+              <User className="w-4 h-4 text-pink-500" />
+              Sign In / Register
+            </Link>
+          )}
 
           <Link
             href="/catalog"

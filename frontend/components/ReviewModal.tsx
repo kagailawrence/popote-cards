@@ -91,7 +91,9 @@ export function ReviewModal({
     setError(null)
 
     if (!customerName.trim() || !comment.trim()) {
-      setError('Please provide your name and your review experience.')
+      const msg = 'Please provide your name and your review experience.'
+      setError(msg)
+      toast.error(msg)
       return
     }
 

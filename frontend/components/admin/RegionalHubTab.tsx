@@ -238,19 +238,27 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
   }
 
   // Delete Hub
-  const handleDeleteHub = async (hub: PrintHub) => {
-    if (!confirm(`Are you sure you want to remove '${hub.name}'? Active orders will be re-routed to the primary hub.`)) return
-    try {
-      const res = await fetch(`/api/v1/admin/hubs/${hub.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (!res.ok) throw new Error('Failed to delete hub')
-      toast.success(`Hub '${hub.name}' removed`)
-      fetchHubData()
-    } catch (err: any) {
-      toast.error(err.message || 'Error deleting hub')
-    }
+  const handleDeleteHub = (hub: PrintHub) => {
+    toast(`Remove '${hub.name}' regional hub?`, {
+      description: 'Active orders will be re-routed to the primary hub.',
+      action: {
+        label: 'Remove',
+        onClick: async () => {
+          try {
+            const res = await fetch(`/api/v1/admin/hubs/${hub.id}`, {
+              method: 'DELETE',
+              headers: { Authorization: `Bearer ${token}` }
+            })
+            if (!res.ok) throw new Error('Failed to delete hub')
+            toast.success(`Hub '${hub.name}' removed`)
+            fetchHubData()
+          } catch (err: any) {
+            toast.error(err.message || 'Error deleting hub')
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    })
   }
 
   // Open County Coverage Mapping Modal
