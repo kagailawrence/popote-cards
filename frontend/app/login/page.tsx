@@ -8,7 +8,12 @@ export default function LoginPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const adminToken = getCookie('fair_admin_token') || (typeof window !== 'undefined' ? localStorage.getItem('fair_admin_token') : null)
+    const adminToken =
+      getCookie('popote_admin_token') ||
+      getCookie('fair_admin_token') ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token')
+        : null)
     if (adminToken) {
       router.replace('/admin')
     } else {

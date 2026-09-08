@@ -57,7 +57,13 @@ export default function AdminDesignStudioPage() {
 
   const getAuthToken = () => {
     if (typeof window === 'undefined') return null
-    return getCookie('fair_admin_token') || localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')
+    return (
+      getCookie('popote_admin_token') ||
+      getCookie('fair_admin_token') ||
+      localStorage.getItem('popote_admin_token') ||
+      localStorage.getItem('fair_admin_token') ||
+      localStorage.getItem('fair_token')
+    )
   }
 
   useEffect(() => {

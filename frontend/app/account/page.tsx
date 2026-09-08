@@ -42,12 +42,17 @@ export default function CustomerAccountPage() {
 
   useEffect(() => {
     setMounted(true)
-    const adminToken = getCookie('fair_admin_token') || (typeof window !== 'undefined' ? localStorage.getItem('fair_admin_token') : null)
+    const adminToken =
+      getCookie('popote_admin_token') ||
+      getCookie('fair_admin_token') ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token')
+        : null)
     if (adminToken) {
       router.push('/admin')
       return
     }
-    const token = getCookie('fair_customer_token')
+    const token = getCookie('popote_customer_token') || getCookie('fair_customer_token')
     if (token && !user) {
       login('customer@fair.co.ke', 'demo1234')
     }
