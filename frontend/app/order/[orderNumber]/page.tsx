@@ -28,7 +28,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ orderN
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/orders/timeline/${encodeURIComponent(orderNum)}?phone=${encodeURIComponent(normalizedPhone)}`)
+      const res = await fetch(`/api/v1/orders/timeline/${encodeURIComponent(orderNum)}?phone=${encodeURIComponent(normalizedPhone)}`)
       const data = await res.json()
       if (!res.ok) {
         throw new Error(data.error || 'Order not found. Please verify the order number and phone number.')
@@ -60,7 +60,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ orderN
   const handleDownloadZip = async () => {
     setDownloadingZip(true)
     try {
-      const url = `http://localhost:4000/api/v1/orders/${encodeURIComponent(resolvedParams.orderNumber)}/download-package${phoneInput ? `?phone=${encodeURIComponent(normalizePhoneNumber(phoneInput))}` : ''}`
+      const url = `/api/v1/orders/${encodeURIComponent(resolvedParams.orderNumber)}/download-package${phoneInput ? `?phone=${encodeURIComponent(normalizePhoneNumber(phoneInput))}` : ''}`
       const res = await fetch(url)
       if (!res.ok) {
         throw new Error('Failed to generate order resource package')

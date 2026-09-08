@@ -128,10 +128,10 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
     setError(null)
     try {
       const [hubsRes, countiesRes] = await Promise.all([
-        fetch('http://localhost:4000/api/v1/admin/hubs', {
+        fetch('/api/v1/admin/hubs', {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        fetch('http://localhost:4000/api/v1/locations/counties')
+        fetch('/api/v1/locations/counties')
       ])
 
       const hubsData = await hubsRes.json()
@@ -143,7 +143,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
       // Fetch all hub orders
       if (hubsData.data && hubsData.data.length > 0) {
         const orderPromises = hubsData.data.map((h: PrintHub) =>
-          fetch(`http://localhost:4000/api/v1/admin/hubs/${h.id}/orders`, {
+          fetch(`/api/v1/admin/hubs/${h.id}/orders`, {
             headers: { Authorization: `Bearer ${token}` }
           }).then(r => r.json())
         )
@@ -202,8 +202,8 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
     setSubmittingHub(true)
     try {
       const url = editingHub
-        ? `http://localhost:4000/api/v1/admin/hubs/${editingHub.id}`
-        : 'http://localhost:4000/api/v1/admin/hubs'
+        ? `/api/v1/admin/hubs/${editingHub.id}`
+        : '/api/v1/admin/hubs'
       const method = editingHub ? 'PATCH' : 'POST'
 
       const res = await fetch(url, {
@@ -241,7 +241,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
   const handleDeleteHub = async (hub: PrintHub) => {
     if (!confirm(`Are you sure you want to remove '${hub.name}'? Active orders will be re-routed to the primary hub.`)) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/hubs/${hub.id}`, {
+      const res = await fetch(`/api/v1/admin/hubs/${hub.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -260,7 +260,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
     setModalCountySearch('')
     setModalRegionFilter('all')
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/hubs/${hub.id}/counties`, {
+      const res = await fetch(`/api/v1/admin/hubs/${hub.id}/counties`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
@@ -278,7 +278,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
     if (!mappingHub) return
     setSavingMapping(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/hubs/${mappingHub.id}/counties`, {
+      const res = await fetch(`/api/v1/admin/hubs/${mappingHub.id}/counties`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -342,7 +342,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
   const handleDownloadHubBatchZip = async (hub: PrintHub) => {
     setDownloadingHubId(hub.id)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/export/hubs/${hub.id}/zip`, {
+      const res = await fetch(`/api/v1/admin/export/hubs/${hub.id}/zip`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) {
@@ -372,7 +372,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
   const handleDownloadItemZip = async (item: HubOrderItem) => {
     setDownloadingItemId(item.item_id)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/export/items/${item.item_id}/zip`, {
+      const res = await fetch(`/api/v1/admin/export/items/${item.item_id}/zip`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Failed to download card resources')
@@ -394,7 +394,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
   // Update Order Status
   const handleUpdateOrderStatus = async (orderId: string, status: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/orders/${orderId}/status`, {
+      const res = await fetch(`/api/v1/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -420,7 +420,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
     if (!newHubId) return
     setReroutingOrderId(orderId)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/orders/${orderId}/reroute-hub`, {
+      const res = await fetch(`/api/v1/admin/orders/${orderId}/reroute-hub`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -444,7 +444,7 @@ export default function RegionalHubTab({ token }: RegionalHubTabProps) {
     const cleanPhone = rawPhone.replace(/[^0-9]/g, '')
     const targetPhone = cleanPhone.startsWith('254') ? cleanPhone : cleanPhone.startsWith('0') ? '254' + cleanPhone.slice(1) : cleanPhone
 
-    const downloadLink = `http://localhost:4000/api/v1/orders/${encodeURIComponent(item.order_number)}/download-package`
+    const downloadLink = `/api/v1/orders/${encodeURIComponent(item.order_number)}/download-package`
     const message = `*SUCCESS CARD REGIONAL PRINT DISPATCH* 🖨️
 -----------------------------------
 *Order Number:* #${item.order_number}

@@ -133,7 +133,7 @@ export default function CustomerReviewsPage() {
   useEffect(() => {
     async function fetchAllReviews() {
       try {
-        const res = await fetch('http://localhost:4000/api/v1/reviews?limit=100')
+        const res = await fetch('/api/v1/reviews?limit=100')
         if (res.ok) {
           const json = await res.json()
           if (json.data && Array.isArray(json.data) && json.data.length > 0) {

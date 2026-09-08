@@ -105,7 +105,7 @@ router.post('/upload-photo', uploadCustomerPhoto.single('photo'), async (req, re
     res.status(201).json({
       data: {
         storagePath,
-        url: `http://localhost:4000/api/v1/files/customer-photos/${filename}?token=${previewToken}`,
+        url: `/api/v1/files/customer-photos/${filename}?token=${previewToken}`,
         token: previewToken,
       },
     })
@@ -129,7 +129,7 @@ router.post(
       res.status(201).json({
         data: {
           storagePath,
-          url: `http://localhost:4000/api/v1/files/design-images/${filename}`,
+          url: `/api/v1/files/design-images/${filename}`,
         },
       })
     } catch (err) {

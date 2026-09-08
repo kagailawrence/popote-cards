@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://www.fair.co.ke'
+  const baseUrl = 'https://www.pop.co.ke'
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    const res = await fetch('http://localhost:4000/api/v1/catalog/designs', {
+    const res = await fetch('/api/v1/catalog/designs', {
       next: { revalidate: 3600 },
     })
     const data = await res.json()

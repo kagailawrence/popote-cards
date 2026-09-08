@@ -67,7 +67,7 @@ export default function AdminDesignStudioPage() {
   const fetchDesignData = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/catalog/designs/${designId}`)
+      const res = await fetch(`/api/v1/catalog/designs/${designId}`)
       const data = await res.json()
       if (data.data) {
         setDesign(data.data)
@@ -129,7 +129,7 @@ export default function AdminDesignStudioPage() {
       const formData = new FormData()
       formData.append('image', file)
 
-      const uploadRes = await fetch('http://localhost:4000/api/v1/files/upload-design-image', {
+      const uploadRes = await fetch('/api/v1/files/upload-design-image', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -140,7 +140,7 @@ export default function AdminDesignStudioPage() {
       }
       if (!uploadRes.ok) throw new Error(uploadData.error || 'Page upload failed')
 
-      const pageRes = await fetch(`http://localhost:4000/api/v1/catalog/designs/${designId}/pages`, {
+      const pageRes = await fetch(`/api/v1/catalog/designs/${designId}/pages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ export default function AdminDesignStudioPage() {
       const formData = new FormData()
       formData.append('image', file)
 
-      const uploadRes = await fetch('http://localhost:4000/api/v1/files/upload-design-image', {
+      const uploadRes = await fetch('/api/v1/files/upload-design-image', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -202,7 +202,7 @@ export default function AdminDesignStudioPage() {
       }
       if (!uploadRes.ok) throw new Error(uploadData.error || 'Thumbnail upload failed')
 
-      const thumbRes = await fetch(`http://localhost:4000/api/v1/catalog/designs/${designId}/thumbnail`, {
+      const thumbRes = await fetch(`/api/v1/catalog/designs/${designId}/thumbnail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -248,7 +248,7 @@ export default function AdminDesignStudioPage() {
       const cA3 = cleanOptPriceInput(compareAtA3Kes)
       const disc = cleanOptIntInput(discountPercent)
 
-      const res = await fetch(`http://localhost:4000/api/v1/catalog/designs/${designId}`, {
+      const res = await fetch(`/api/v1/catalog/designs/${designId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

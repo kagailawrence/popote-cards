@@ -28,7 +28,7 @@ export default function DisputePage() {
     setError(null)
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/disputes', {
+      const res = await fetch('/api/v1/disputes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

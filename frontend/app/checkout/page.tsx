@@ -61,7 +61,7 @@ export default function CheckoutPage() {
       }
 
       try {
-        const res = await fetch(`http://localhost:4000/api/v1/payments/status/${checkoutRequestId}`)
+        const res = await fetch(`/api/v1/payments/status/${checkoutRequestId}`)
         if (!res.ok) {
           console.warn('Status poll HTTP status:', res.status)
           return
@@ -155,7 +155,7 @@ export default function CheckoutPage() {
           })),
         }
 
-        const orderRes = await fetch('http://localhost:4000/api/v1/orders', {
+        const orderRes = await fetch('/api/v1/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(orderPayload),
@@ -197,7 +197,7 @@ export default function CheckoutPage() {
     setReviewSubmitting(true)
     try {
       if (reviewerName.trim() && reviewComment.trim()) {
-        await fetch('http://localhost:4000/api/v1/reviews', {
+        await fetch('/api/v1/reviews', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -235,7 +235,7 @@ export default function CheckoutPage() {
     setPaymentStatus('pending')
     setPaymentFailureReason(null)
 
-    const paymentRes = await fetch('http://localhost:4000/api/v1/payments/stk-push', {
+    const paymentRes = await fetch('/api/v1/payments/stk-push', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ orderId, phone: normPhone, amountKes: amount }),
@@ -272,7 +272,7 @@ export default function CheckoutPage() {
   const handleSimulateCallback = async () => {
     if (!checkoutRequestId) return
     try {
-      await fetch('http://localhost:4000/api/v1/payments/mpesa/callback', {
+      await fetch('/api/v1/payments/mpesa/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

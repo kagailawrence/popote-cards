@@ -56,7 +56,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
     setError('')
     try {
       // Fetch counties
-      const countiesRes = await fetch('http://localhost:4000/api/v1/locations/counties', {
+      const countiesRes = await fetch('/api/v1/locations/counties', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const countiesData = await countiesRes.json()
@@ -64,7 +64,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
       setCounties(countiesData.data || [])
 
       // Fetch all sub-counties
-      const subRes = await fetch('http://localhost:4000/api/v1/locations/sub-counties', {
+      const subRes = await fetch('/api/v1/locations/sub-counties', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const subData = await subRes.json()
@@ -87,7 +87,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
     if (!newCountyName.trim()) return
     setSubmitting(true)
     try {
-      const res = await fetch('http://localhost:4000/api/v1/locations/counties', {
+      const res = await fetch('/api/v1/locations/counties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
     if (!editingCounty || !editingCountyName.trim()) return
     setSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/locations/counties/${editingCounty.id}`, {
+      const res = await fetch(`/api/v1/locations/counties/${editingCounty.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
   const handleDeleteCounty = async (id: string) => {
     if (!confirm('Are you sure you want to delete this county? All associated sub-counties may become orphaned.')) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/locations/counties/${id}`, {
+      const res = await fetch(`/api/v1/locations/counties/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -157,7 +157,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
     if (!newSubCountyName.trim() || !newSubCountyCountyId) return
     setSubmitting(true)
     try {
-      const res = await fetch('http://localhost:4000/api/v1/locations/sub-counties', {
+      const res = await fetch('/api/v1/locations/sub-counties', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
     if (!editingSubCounty || !editingSubCountyName.trim()) return
     setSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/locations/sub-counties/${editingSubCounty.id}`, {
+      const res = await fetch(`/api/v1/locations/sub-counties/${editingSubCounty.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -215,7 +215,7 @@ export default function LocationsTab({ token }: LocationsTabProps) {
   const handleDeleteSubCounty = async (id: string) => {
     if (!confirm('Are you sure you want to delete this sub-county?')) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/locations/sub-counties/${id}`, {
+      const res = await fetch(`/api/v1/locations/sub-counties/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })

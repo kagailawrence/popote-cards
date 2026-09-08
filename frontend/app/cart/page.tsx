@@ -41,7 +41,7 @@ export default function CartPage() {
     setMounted(true)
     async function loadLocations() {
       try {
-        const res = await fetch('http://localhost:4000/api/v1/locations/counties')
+        const res = await fetch('/api/v1/locations/counties')
         const data = await res.json()
         if (data.data) setCounties(data.data)
       } catch (err) {
@@ -58,7 +58,7 @@ export default function CartPage() {
     }
     async function loadSubCounties() {
       try {
-        const res = await fetch(`http://localhost:4000/api/v1/locations/counties/${editCountyId}/sub-counties`)
+        const res = await fetch(`/api/v1/locations/counties/${editCountyId}/sub-counties`)
         const data = await res.json()
         if (data.data) setSubCounties(data.data)
       } catch (err) {

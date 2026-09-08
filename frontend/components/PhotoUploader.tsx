@@ -24,7 +24,7 @@ export function PhotoUploader({ onPhotoUploaded, onPhotoCleared }: PhotoUploader
     formData.append('photo', file)
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/files/upload-photo', {
+      const res = await fetch('/api/v1/files/upload-photo', {
         method: 'POST',
         body: formData,
       })
@@ -32,7 +32,7 @@ export function PhotoUploader({ onPhotoUploaded, onPhotoCleared }: PhotoUploader
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Upload failed')
 
-      const fullUrl = `http://localhost:4000${data.data.url}`
+      const fullUrl = data.data.url
       setPreviewUrl(fullUrl)
       onPhotoUploaded(data.data.storagePath, fullUrl)
     } catch (err: any) {

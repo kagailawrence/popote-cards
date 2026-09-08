@@ -99,7 +99,7 @@ export default function AdminPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/auth/login', {
+      const res = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -125,15 +125,15 @@ export default function AdminPage() {
   const fetchAllAdminData = async (jwtToken: string) => {
     try {
       const [statsRes, ordersRes, designsRes, categoriesRes, countiesRes, subCountiesRes, ridersRes, disputesRes, pricingRes] = await Promise.all([
-        fetch('http://localhost:4000/api/v1/admin/stats', { headers: { Authorization: `Bearer ${jwtToken}` } }),
-        fetch('http://localhost:4000/api/v1/admin/orders', { headers: { Authorization: `Bearer ${jwtToken}` } }),
-        fetch('http://localhost:4000/api/v1/catalog/designs'),
-        fetch('http://localhost:4000/api/v1/catalog/categories'),
-        fetch('http://localhost:4000/api/v1/locations/counties'),
-        fetch('http://localhost:4000/api/v1/locations/sub-counties'),
-        fetch('http://localhost:4000/api/v1/riders', { headers: { Authorization: `Bearer ${jwtToken}` } }),
-        fetch('http://localhost:4000/api/v1/disputes', { headers: { Authorization: `Bearer ${jwtToken}` } }),
-        fetch('http://localhost:4000/api/v1/pricing/matrix'),
+        fetch('/api/v1/admin/stats', { headers: { Authorization: `Bearer ${jwtToken}` } }),
+        fetch('/api/v1/admin/orders', { headers: { Authorization: `Bearer ${jwtToken}` } }),
+        fetch('/api/v1/catalog/designs'),
+        fetch('/api/v1/catalog/categories'),
+        fetch('/api/v1/locations/counties'),
+        fetch('/api/v1/locations/sub-counties'),
+        fetch('/api/v1/riders', { headers: { Authorization: `Bearer ${jwtToken}` } }),
+        fetch('/api/v1/disputes', { headers: { Authorization: `Bearer ${jwtToken}` } }),
+        fetch('/api/v1/pricing/matrix'),
       ])
 
       const statsData = await statsRes.json()
@@ -186,8 +186,8 @@ export default function AdminPage() {
     setAnalyticsLoading(true)
     try {
       const [analyticsRes, chartRes] = await Promise.all([
-        fetch('http://localhost:4000/api/v1/admin/analytics', { headers: { Authorization: `Bearer ${jwtToken}` } }),
-        fetch('http://localhost:4000/api/v1/admin/analytics/revenue-chart', { headers: { Authorization: `Bearer ${jwtToken}` } }),
+        fetch('/api/v1/admin/analytics', { headers: { Authorization: `Bearer ${jwtToken}` } }),
+        fetch('/api/v1/admin/analytics/revenue-chart', { headers: { Authorization: `Bearer ${jwtToken}` } }),
       ])
       const analyticsData = await analyticsRes.json()
       const chartData = await chartRes.json()
@@ -205,7 +205,7 @@ export default function AdminPage() {
     if (!token) return
     setLoadingOrderDetails(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/v1/admin/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await res.json()
@@ -222,7 +222,7 @@ export default function AdminPage() {
   const handleBulkExportZip = async () => {
     if (!token) return
     try {
-      const res = await fetch('http://localhost:4000/api/v1/admin/export/export', {
+      const res = await fetch('/api/v1/admin/export/export', {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) {
@@ -357,7 +357,7 @@ export default function AdminPage() {
   const handleDownloadItemPdf = async (item: any) => {
     if (!token) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/export/items/${item.id}/download-pdf`, {
+      const res = await fetch(`/api/v1/admin/export/items/${item.id}/download-pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) {
@@ -391,7 +391,7 @@ export default function AdminPage() {
     if (newPrice === undefined || isNaN(newPrice) || newPrice < 0) return
 
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/pricing/matrix/${priceId}`, {
+      const res = await fetch(`/api/v1/pricing/matrix/${priceId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -416,7 +416,7 @@ export default function AdminPage() {
     e.preventDefault()
     if (!token || !newCategoryName.trim()) return
     try {
-      const res = await fetch('http://localhost:4000/api/v1/catalog/categories', {
+      const res = await fetch('/api/v1/catalog/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -437,7 +437,7 @@ export default function AdminPage() {
   const handleDeleteCategory = async (id: string) => {
     if (!token) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/catalog/categories/${id}`, {
+      const res = await fetch(`/api/v1/catalog/categories/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -451,7 +451,7 @@ export default function AdminPage() {
     e.preventDefault()
     if (!token || !newDesignName.trim()) return
     try {
-      const res = await fetch('http://localhost:4000/api/v1/catalog/designs', {
+      const res = await fetch('/api/v1/catalog/designs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -480,7 +480,7 @@ export default function AdminPage() {
   const handleDeleteDesign = async (id: string) => {
     if (!token) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/catalog/designs/${id}`, {
+      const res = await fetch(`/api/v1/catalog/designs/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -493,7 +493,7 @@ export default function AdminPage() {
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     if (!token) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/orders/${orderId}/status`, {
+      const res = await fetch(`/api/v1/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -838,14 +838,14 @@ export default function AdminPage() {
                             <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">Uploaded Candidate Photo</span>
                             <div className="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
                               <img
-                                src={`http://localhost:4000/storage/${item.custom_photo_path.replace(/^\/+/, '')}`}
+                                src={`/storage/${item.custom_photo_path.replace(/^\/+/, '')}`}
                                 alt="Candidate photo"
                                 className="w-12 h-12 object-cover rounded-lg border border-pink-500"
                               />
                               <div>
                                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 block">Glossy Insert Frame</span>
                                 <a
-                                  href={`http://localhost:4000/storage/${item.custom_photo_path.replace(/^\/+/, '')}`}
+                                  href={`/storage/${item.custom_photo_path.replace(/^\/+/, '')}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="text-[10px] text-pink-500 hover:underline font-semibold"

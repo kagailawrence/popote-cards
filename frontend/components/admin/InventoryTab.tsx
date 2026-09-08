@@ -37,7 +37,7 @@ export default function InventoryTab({ token }: InventoryTabProps) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('http://localhost:4000/api/v1/inventory', {
+      const res = await fetch('/api/v1/inventory', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
@@ -67,7 +67,7 @@ export default function InventoryTab({ token }: InventoryTabProps) {
     if (!selectedItem) return
     setSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/inventory/${selectedItem.id}/stock`, {
+      const res = await fetch(`/api/v1/inventory/${selectedItem.id}/stock`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

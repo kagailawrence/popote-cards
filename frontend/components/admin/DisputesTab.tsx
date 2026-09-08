@@ -36,7 +36,7 @@ export default function DisputesTab({ token }: DisputesTabProps) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('http://localhost:4000/api/v1/disputes', {
+      const res = await fetch('/api/v1/disputes', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
@@ -65,7 +65,7 @@ export default function DisputesTab({ token }: DisputesTabProps) {
     if (!selectedDispute) return
     setSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/disputes/${selectedDispute.id}/refund`, {
+      const res = await fetch(`/api/v1/admin/disputes/${selectedDispute.id}/refund`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

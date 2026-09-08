@@ -20,7 +20,7 @@ export default function OrderTrackPage() {
     setData(null)
 
     try {
-      let url = `http://localhost:4000/api/v1/orders/timeline/${orderNumber.trim()}`
+      let url = `/api/v1/orders/timeline/${orderNumber.trim()}`
       if (phone.trim()) {
         url += `?phone=${encodeURIComponent(phone.trim())}`
       }

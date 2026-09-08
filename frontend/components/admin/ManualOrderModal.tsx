@@ -36,8 +36,8 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated, toke
     const fetchCatalogData = async () => {
       try {
         const [desRes, ctyRes] = await Promise.all([
-          fetch('http://localhost:4000/api/v1/catalog/designs'),
-          fetch('http://localhost:4000/api/v1/locations/counties')
+          fetch('/api/v1/catalog/designs'),
+          fetch('/api/v1/locations/counties')
         ])
         const desData = await desRes.json()
         const ctyData = await ctyRes.json()
@@ -61,7 +61,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated, toke
 
   const fetchSubCounties = async (countyId: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/locations/counties/${countyId}/sub-counties`)
+      const res = await fetch(`/api/v1/locations/counties/${countyId}/sub-counties`)
       const data = await res.json()
       if (data.data) {
         setSubCounties(data.data)
@@ -102,7 +102,7 @@ export default function ManualOrderModal({ isOpen, onClose, onOrderCreated, toke
         ]
       }
 
-      const res = await fetch('http://localhost:4000/api/v1/admin/orders', {
+      const res = await fetch('/api/v1/admin/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

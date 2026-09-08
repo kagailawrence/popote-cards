@@ -86,7 +86,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
     setError('')
     try {
       const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
-      const res = await fetch('http://localhost:4000/api/v1/admin/orders?limit=100', {
+      const res = await fetch('/api/v1/admin/orders?limit=100', {
         headers: { Authorization: `Bearer ${activeTok}` }
       })
       const data = await res.json()
@@ -102,7 +102,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
   const fetchOrdersSilently = async () => {
     try {
       const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
-      const res = await fetch('http://localhost:4000/api/v1/admin/orders?limit=100', {
+      const res = await fetch('/api/v1/admin/orders?limit=100', {
         headers: { Authorization: `Bearer ${activeTok}` }
       })
       const data = await res.json()
@@ -126,7 +126,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
 
     const connectSSE = () => {
       try {
-        const streamUrl = `http://localhost:4000/api/v1/admin/orders/stream?token=${encodeURIComponent(activeTok)}`
+        const streamUrl = `/api/v1/admin/orders/stream?token=${encodeURIComponent(activeTok)}`
         eventSource = new EventSource(streamUrl)
 
         eventSource.onopen = () => {
@@ -200,7 +200,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
   // Status Change Handler
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/orders/${orderId}/status`, {
+      const res = await fetch(`/api/v1/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +226,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
     setSelectedOrderForPrint(found)
     setLoadingOrderDetails(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/v1/admin/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
@@ -246,7 +246,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
     setLoadingTimeline(true)
     setSelectedOrderForTimeline(null)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/orders/timeline/${orderNumber}`)
+      const res = await fetch(`/api/v1/orders/timeline/${orderNumber}`)
       const data = await res.json()
       if (res.ok && data.data) {
         setSelectedOrderForTimeline(data.data)
@@ -262,7 +262,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
   // PDF & ZIP Handlers
   const handleDownloadItemPdf = async (item: any) => {
     try {
-      let res = await fetch(`http://localhost:4000/api/v1/rendering/vector-pdf/${item.id}`, {
+      let res = await fetch(`/api/v1/rendering/vector-pdf/${item.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -280,7 +280,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
 
       if (!res.ok) {
         // Fallback to export router item download
-        res = await fetch(`http://localhost:4000/api/v1/admin/export/items/${item.id}/download-pdf`, {
+        res = await fetch(`/api/v1/admin/export/items/${item.id}/download-pdf`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {})
           }
@@ -312,7 +312,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
   const handleDownloadOrderZip = async (orderId: string, orderNumber: string) => {
     setDownloadingOrderId(orderId)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/export/orders/${orderId}/zip`, {
+      const res = await fetch(`/api/v1/admin/export/orders/${orderId}/zip`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
@@ -345,7 +345,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
   const handleDownloadItemZip = async (itemId: string, recipientName: string, orderNumber: string) => {
     setDownloadingItemId(itemId)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/export/items/${itemId}/zip`, {
+      const res = await fetch(`/api/v1/admin/export/items/${itemId}/zip`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
@@ -378,7 +378,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
   const generateDocketHtml = (item: any, orderNumber: string, orderData?: any) => {
     const photoFileName = item.custom_photo_storage_path ? item.custom_photo_storage_path.split('/').pop() : ''
     const photoUrl = photoFileName
-      ? `http://localhost:4000/api/v1/files/customer-photos/${photoFileName}?token=${token}`
+      ? `/api/v1/files/customer-photos/${photoFileName}?token=${token}`
       : ''
 
     return `
@@ -558,7 +558,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
             ${photoFileName ? `
               <div style="display: flex; gap: 16px; align-items: center; margin-top: 10px;">
                 <div class="photo-container">
-                  <img class="photo-img" src="${photoUrl}" alt="Candidate Photo" onerror="this.onerror=null; this.src='http://localhost:4000/api/v1/files/design-images/${photoFileName}'"/>
+                  <img class="photo-img" src="${photoUrl}" alt="Candidate Photo" onerror="this.onerror=null; this.src='/api/v1/files/design-images/${photoFileName}'"/>
                 </div>
                 <div>
                   <div class="label">Status</div>
@@ -622,12 +622,12 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
   const handleDownloadPhotoAsset = async (item: any, orderNumber: string) => {
     if (!item.custom_photo_storage_path) return
     const photoFileName = item.custom_photo_storage_path.split('/').pop()
-    const photoUrl = `http://localhost:4000/api/v1/files/customer-photos/${photoFileName}?token=${token}`
+    const photoUrl = `/api/v1/files/customer-photos/${photoFileName}?token=${token}`
     
     try {
       let res = await fetch(photoUrl)
       if (!res.ok) {
-        res = await fetch(`http://localhost:4000/api/v1/files/design-images/${photoFileName}`)
+        res = await fetch(`/api/v1/files/design-images/${photoFileName}`)
       }
       if (!res.ok) throw new Error('Could not download photo resource')
       const blob = await res.blob()
@@ -646,7 +646,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
 
   const handleBulkExportZip = async () => {
     try {
-      const res = await fetch('http://localhost:4000/api/v1/admin/export/regional-print-zip', {
+      const res = await fetch('/api/v1/admin/export/regional-print-zip', {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) throw new Error('Bulk export failed')
@@ -1102,13 +1102,13 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
                             <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">Candidate Photo Resource (For Manual Insertion)</span>
                             <div className="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
                               <img
-                                src={`http://localhost:4000/api/v1/files/customer-photos/${item.custom_photo_storage_path.split('/').pop()}?token=${token}`}
+                                src={`/api/v1/files/customer-photos/${item.custom_photo_storage_path.split('/').pop()}?token=${token}`}
                                 alt="Candidate photo"
                                 loading="lazy"
                                 decoding="async"
                                 onError={(e: any) => {
                                   e.target.onerror = null
-                                  e.target.src = `http://localhost:4000/api/v1/files/design-images/${item.custom_photo_storage_path.split('/').pop()}`
+                                  e.target.src = `/api/v1/files/design-images/${item.custom_photo_storage_path.split('/').pop()}`
                                 }}
                                 className="w-14 h-14 object-cover rounded-xl border-2 border-purple-500 shadow-sm"
                               />

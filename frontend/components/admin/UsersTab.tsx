@@ -74,7 +74,7 @@ export default function UsersTab({ token }: UsersTabProps) {
   const handleDownloadOrderZip = async (orderId: string, orderNumber: string) => {
     setDownloadingOrderId(orderId)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/export/orders/${orderId}/zip`, {
+      const res = await fetch(`/api/v1/admin/export/orders/${orderId}/zip`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
@@ -116,9 +116,9 @@ export default function UsersTab({ token }: UsersTabProps) {
     setError('')
     try {
       const [adminsRes, customersRes, ridersRes] = await Promise.all([
-        fetch('http://localhost:4000/api/v1/admin/users', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:4000/api/v1/admin/customers', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:4000/api/v1/admin/riders', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/v1/admin/users', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/v1/admin/customers', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/v1/admin/riders', { headers: { Authorization: `Bearer ${token}` } }),
       ])
 
       const adminsData = await adminsRes.json()
@@ -146,7 +146,7 @@ export default function UsersTab({ token }: UsersTabProps) {
     if (!newAdminEmail.trim() || !newAdminPassword) return
     setSubmitting(true)
     try {
-      const res = await fetch('http://localhost:4000/api/v1/admin/users', {
+      const res = await fetch('/api/v1/admin/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ export default function UsersTab({ token }: UsersTabProps) {
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/users/${userId}`, {
+      const res = await fetch(`/api/v1/admin/users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ export default function UsersTab({ token }: UsersTabProps) {
 
   const handleUnlockUser = async (userId: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/users/${userId}`, {
+      const res = await fetch(`/api/v1/admin/users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +219,7 @@ export default function UsersTab({ token }: UsersTabProps) {
     if (!showResetPasswordModal || !resetNewPassword) return
     setSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/users/${showResetPasswordModal.id}/password`, {
+      const res = await fetch(`/api/v1/admin/users/${showResetPasswordModal.id}/password`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +244,7 @@ export default function UsersTab({ token }: UsersTabProps) {
   const handleDeleteAdmin = async (user: AdminUser) => {
     if (!confirm(`Are you sure you want to permanently revoke and delete staff account '${user.email}'?`)) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/users/${user.id}`, {
+      const res = await fetch(`/api/v1/admin/users/${user.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -263,7 +263,7 @@ export default function UsersTab({ token }: UsersTabProps) {
     setSelectedCustomerForOrders(customer)
     setLoadingCustomerOrders(true)
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/customers/${customer.id}/orders`, {
+      const res = await fetch(`/api/v1/admin/customers/${customer.id}/orders`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       const data = await res.json()
@@ -285,7 +285,7 @@ export default function UsersTab({ token }: UsersTabProps) {
     setSubmitting(true)
     try {
       if (editingRider) {
-        const res = await fetch(`http://localhost:4000/api/v1/admin/riders/${editingRider.id}`, {
+        const res = await fetch(`/api/v1/admin/riders/${editingRider.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -301,7 +301,7 @@ export default function UsersTab({ token }: UsersTabProps) {
         if (!res.ok) throw new Error(data.error || 'Failed to update rider')
         toast.success(`Rider ${newRiderName} updated!`)
       } else {
-        const res = await fetch('http://localhost:4000/api/v1/admin/riders', {
+        const res = await fetch('/api/v1/admin/riders', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -334,7 +334,7 @@ export default function UsersTab({ token }: UsersTabProps) {
   const handleDeleteRider = async (rider: Rider) => {
     if (!confirm(`Delete rider '${rider.name}'?`)) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/admin/riders/${rider.id}`, {
+      const res = await fetch(`/api/v1/admin/riders/${rider.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })

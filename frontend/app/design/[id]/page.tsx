@@ -63,9 +63,9 @@ export default function DesignCustomizerPage({ params }: { params: Promise<{ id:
     async function loadInitialData() {
       try {
         const [designRes, countiesRes, templatesRes] = await Promise.all([
-          fetch(`http://localhost:4000/api/v1/catalog/designs/${resolvedParams.id}`),
-          fetch('http://localhost:4000/api/v1/locations/counties'),
-          fetch('http://localhost:4000/api/v1/catalog/message-templates'),
+          fetch(`/api/v1/catalog/designs/${resolvedParams.id}`),
+          fetch('/api/v1/locations/counties'),
+          fetch('/api/v1/catalog/message-templates'),
         ])
 
         const designData = await designRes.json()
@@ -102,7 +102,7 @@ export default function DesignCustomizerPage({ params }: { params: Promise<{ id:
     }
     async function loadSubCounties() {
       try {
-        const res = await fetch(`http://localhost:4000/api/v1/locations/counties/${selectedCountyId}/sub-counties`)
+        const res = await fetch(`/api/v1/locations/counties/${selectedCountyId}/sub-counties`)
         const data = await res.json()
         if (data.data) {
           setSubCounties(data.data)

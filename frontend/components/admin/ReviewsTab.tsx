@@ -23,7 +23,7 @@ export default function ReviewsTab({ token }: ReviewsTabProps) {
     setLoading(true)
     setError(null)
     try {
-      let url = 'http://localhost:4000/api/v1/reviews/admin/all'
+      let url = '/api/v1/reviews/admin/all'
       if (statusFilter !== 'all') {
         url += `?status=${statusFilter}`
       }
@@ -48,7 +48,7 @@ export default function ReviewsTab({ token }: ReviewsTabProps) {
 
   const handleToggleApproval = async (id: string, currentStatus: boolean) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/reviews/admin/${id}`, {
+      const res = await fetch(`/api/v1/reviews/admin/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ export default function ReviewsTab({ token }: ReviewsTabProps) {
 
   const handleToggleVerified = async (id: string, currentVerified: boolean) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/reviews/admin/${id}`, {
+      const res = await fetch(`/api/v1/reviews/admin/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function ReviewsTab({ token }: ReviewsTabProps) {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to permanently delete this customer review?')) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/reviews/admin/${id}`, {
+      const res = await fetch(`/api/v1/reviews/admin/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })

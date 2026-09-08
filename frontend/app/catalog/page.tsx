@@ -68,7 +68,7 @@ export default function CatalogPage() {
   useEffect(() => {
     async function loadCategories() {
       try {
-        const res = await fetch('http://localhost:4000/api/v1/catalog/categories')
+        const res = await fetch('/api/v1/catalog/categories')
         const data = await res.json()
         if (data.data) setCategories(data.data)
       } catch (err) {
@@ -87,7 +87,7 @@ export default function CatalogPage() {
         if (selectedStyle) params.append('style', selectedStyle)
         if (selectedReligion) params.append('religion', selectedReligion)
 
-        const res = await fetch(`http://localhost:4000/api/v1/catalog/designs?${params.toString()}`)
+        const res = await fetch(`/api/v1/catalog/designs?${params.toString()}`)
         const data = await res.json()
         if (data.data) {
           const enriched = data.data.map((d: any) => ({

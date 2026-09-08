@@ -59,7 +59,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.popote-api.rule=Host(`popote.dazzcode.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.popote-api.rule=Host(`popote.dazzcode.com`) && (PathPrefix(`/api`) || PathPrefix(`/storage`))"
       - "traefik.http.routers.popote-api.entrypoints=websecure"
       - "traefik.http.routers.popote-api.tls.certresolver=myresolver"
       - "traefik.http.services.popote-api.loadbalancer.server.port=4000"
@@ -100,7 +100,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: https://popote.dazzcode.com/api
+        NEXT_PUBLIC_API_URL: /api/v1
         INTERNAL_BACKEND_URL: http://server:4000
     container_name: popote-frontend
     restart: unless-stopped
@@ -115,7 +115,7 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       INTERNAL_BACKEND_URL: http://server:4000
-      NEXT_PUBLIC_API_URL: https://popote.dazzcode.com/api
+      NEXT_PUBLIC_API_URL: /api/v1
     networks:
       - edge
       - popote-network

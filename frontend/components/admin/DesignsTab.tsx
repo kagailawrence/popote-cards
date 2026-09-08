@@ -101,12 +101,12 @@ export default function DesignsTab({ token }: DesignsTabProps) {
     setLoading(true)
     setError('')
     try {
-      const designsRes = await fetch('http://localhost:4000/api/v1/catalog/designs')
+      const designsRes = await fetch('/api/v1/catalog/designs')
       const designsData = await designsRes.json()
       if (!designsRes.ok) throw new Error(designsData.error || 'Failed to load design templates')
       setDesigns(designsData.data || [])
 
-      const catRes = await fetch('http://localhost:4000/api/v1/catalog/categories')
+      const catRes = await fetch('/api/v1/catalog/categories')
       const catData = await catRes.json()
       if (!catRes.ok) throw new Error(catData.error || 'Failed to load categories')
       setCategories(catData.data || [])
@@ -161,7 +161,7 @@ export default function DesignsTab({ token }: DesignsTabProps) {
       const cPrice = cleanOptNum(newCompareAtPriceKes)
       const disc = cleanOptInt(newDiscountPercent)
 
-      const res = await fetch('http://localhost:4000/api/v1/catalog/designs', {
+      const res = await fetch('/api/v1/catalog/designs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -245,7 +245,7 @@ export default function DesignsTab({ token }: DesignsTabProps) {
       const cPrice = cleanOptNum(editCompareAtPriceKes)
       const disc = cleanOptInt(editDiscountPercent)
 
-      const res = await fetch(`http://localhost:4000/api/v1/catalog/designs/${editingDesign.id}`, {
+      const res = await fetch(`/api/v1/catalog/designs/${editingDesign.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -290,7 +290,7 @@ export default function DesignsTab({ token }: DesignsTabProps) {
     setCreatingInlineCat(true)
     const activeTok = getActiveToken()
     try {
-      const res = await fetch('http://localhost:4000/api/v1/catalog/categories', {
+      const res = await fetch('/api/v1/catalog/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -492,7 +492,7 @@ export default function DesignsTab({ token }: DesignsTabProps) {
   const handleDeleteDesign = async (id: string) => {
     if (!confirm('Are you sure you want to delete this design template? This will remove associated pages.')) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/catalog/designs/${id}`, {
+      const res = await fetch(`/api/v1/catalog/designs/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -511,7 +511,7 @@ export default function DesignsTab({ token }: DesignsTabProps) {
     if (!newCategoryName.trim()) return
     setSubmitting(true)
     try {
-      const res = await fetch('http://localhost:4000/api/v1/catalog/categories', {
+      const res = await fetch('/api/v1/catalog/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -538,7 +538,7 @@ export default function DesignsTab({ token }: DesignsTabProps) {
   const handleDeleteCategory = async (id: string) => {
     if (!confirm('Delete this category?')) return
     try {
-      const res = await fetch(`http://localhost:4000/api/v1/catalog/categories/${id}`, {
+      const res = await fetch(`/api/v1/catalog/categories/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
