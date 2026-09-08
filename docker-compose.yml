@@ -1,58 +1,83 @@
+networks:
+  edge:
+    external: true
+  popote-network:
+    driver: bridge
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: fair-postgres
+    container_name: popote-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_NAME:-fair}
-    ports:
-      - "${DB_PORT:-5432}:5432"
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./server/db:/server-db:ro
       - ./docker/postgres/01-init.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+    networks:
+      - popote-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-fair}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1G
 
   redis:
     image: redis:7-alpine
-    container_name: fair-redis
+    container_name: popote-redis
     restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - popote-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: fair-server
+    container_name: popote-server
     restart: unless-stopped
-    ports:
-      - "${SERVER_PORT:-4000}:4000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.popote-api.rule=Host(`popote.dazzcode.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.popote-api.entrypoints=websecure"
+      - "traefik.http.routers.popote-api.tls.certresolver=myresolver"
+      - "traefik.http.services.popote-api.loadbalancer.server.port=4000"
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       PORT: 4000
       NODE_ENV: ${NODE_ENV:-production}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-fair}
+      FRONTEND_URL: https://popote.dazzcode.com
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-super-secure-fair-platform-jwt-secret-min-32-chars}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       MPESA_ENV: ${MPESA_ENV:-sandbox}
     volumes:
       - ./storage:/app/storage
+    networks:
+      - edge
+      - popote-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,22 +89,36 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-    container_name: fair-frontend
+        NEXT_PUBLIC_API_URL: https://popote.dazzcode.com/api
+        INTERNAL_BACKEND_URL: http://server:4000
+    container_name: popote-frontend
     restart: unless-stopped
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.popote-frontend.rule=Host(`popote.dazzcode.com`)"
+      - "traefik.http.routers.popote-frontend.entrypoints=websecure"
+      - "traefik.http.routers.popote-frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.popote-frontend.loadbalancer.server.port=3000"
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       INTERNAL_BACKEND_URL: http://server:4000
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_API_URL: https://popote.dazzcode.com/api
+    networks:
+      - edge
+      - popote-network
     depends_on:
       server:
         condition: service_healthy
@@ -89,6 +128,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
 volumes:
   postgres_data:

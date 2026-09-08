@@ -121,7 +121,11 @@ export default function DesignsTab({ token }: DesignsTabProps) {
     fetchData()
   }, [])
 
-  const getActiveToken = () => token || (typeof window !== 'undefined' ? (localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
+  const getActiveToken = () =>
+    token ||
+    (typeof window !== 'undefined'
+      ? localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')
+      : '')
 
   const cleanNum = (val: any, fallback: number): number => {
     if (val === undefined || val === null || val === '') return fallback

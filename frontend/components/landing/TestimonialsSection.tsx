@@ -121,7 +121,10 @@ export function TestimonialsSection() {
   useEffect(() => {
     async function fetchReviews() {
       try {
-        const res = await fetch('http://localhost:4000/api/v1/reviews?limit=20')
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL
+          ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/reviews?limit=20`
+          : '/api/v1/reviews?limit=20'
+        const res = await fetch(apiUrl)
         if (res.ok) {
           const data = await res.json()
           if (data.data && Array.isArray(data.data) && data.data.length > 0) {
@@ -193,10 +196,6 @@ export function TestimonialsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         {/* Section Header */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 font-extrabold text-xs">
-            <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-            <span>VERIFIED KENYAN SCHOOL STORIES</span>
-          </div>
 
           <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
             What People Say About Popote Cards

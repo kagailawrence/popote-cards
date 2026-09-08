@@ -13,7 +13,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-const THEME_STORAGE_KEY = 'fair_theme'
+const THEME_STORAGE_KEY = 'popote_theme'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('system')
@@ -22,7 +22,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Read saved theme from localStorage
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
+    const savedTheme = (localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem('fair_theme')) as Theme | null
     if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       setThemeState(savedTheme)
     }

@@ -6,6 +6,7 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    qualities: [75, 95],
   },
   async rewrites() {
     const backendUrl =

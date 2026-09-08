@@ -39,7 +39,7 @@ interface CustomerAuthState {
 const DEFAULT_DEMO_ORDERS: CustomerOrder[] = [
   {
     id: 'ord-101',
-    orderNumber: 'FAIR-8921',
+    orderNumber: 'POPOTE-8921',
     designName: 'A New Dawn',
     recipientName: 'David Wambua',
     schoolName: 'Alliance High School',
@@ -51,7 +51,7 @@ const DEFAULT_DEMO_ORDERS: CustomerOrder[] = [
   },
   {
     id: 'ord-102',
-    orderNumber: 'FAIR-7432',
+    orderNumber: 'POPOTE-7432',
     designName: 'You Did It',
     recipientName: 'Mercy Akinyi',
     schoolName: 'Kenya High School',
@@ -63,7 +63,7 @@ const DEFAULT_DEMO_ORDERS: CustomerOrder[] = [
   },
   {
     id: 'ord-103',
-    orderNumber: 'FAIR-6105',
+    orderNumber: 'POPOTE-6105',
     designName: 'Grace & Glory',
     recipientName: 'Samuel Omwamba',
     schoolName: 'Kapsabet High School',
@@ -101,7 +101,7 @@ export const useCustomerAuthStore = create<CustomerAuthState>()(
           defaultSubCounty: 'Starehe CBD',
           defaultSchool: 'Starehe Boys Centre',
         }
-        setCookie('fair_customer_token', `token_${newUser.id}`, 7)
+        setCookie('popote_customer_token', `token_${newUser.id}`, 7)
         set({ user: newUser })
         return true
       },
@@ -114,12 +114,13 @@ export const useCustomerAuthStore = create<CustomerAuthState>()(
           phone,
           memberSince: 'August 2026',
         }
-        setCookie('fair_customer_token', `token_${newUser.id}`, 7)
+        setCookie('popote_customer_token', `token_${newUser.id}`, 7)
         set({ user: newUser })
         return true
       },
 
       logout: () => {
+        eraseCookie('popote_customer_token')
         eraseCookie('fair_customer_token')
         set({ user: null })
       },
@@ -138,7 +139,7 @@ export const useCustomerAuthStore = create<CustomerAuthState>()(
       },
     }),
     {
-      name: 'fair_customer_auth_v1',
+      name: 'popote_customer_auth_v1',
     }
   )
 )

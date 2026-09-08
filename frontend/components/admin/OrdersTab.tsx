@@ -85,7 +85,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
     setLoading(true)
     setError('')
     try {
-      const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
+      const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
       const res = await fetch('http://localhost:4000/api/v1/admin/orders?limit=100', {
         headers: { Authorization: `Bearer ${activeTok}` }
       })
@@ -101,7 +101,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
 
   const fetchOrdersSilently = async () => {
     try {
-      const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
+      const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
       const res = await fetch('http://localhost:4000/api/v1/admin/orders?limit=100', {
         headers: { Authorization: `Bearer ${activeTok}` }
       })
@@ -118,7 +118,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
 
   // Real-Time Server-Sent Events (SSE) live connection
   useEffect(() => {
-    const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
+    const activeTok = token || (typeof window !== 'undefined' ? (localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token') || localStorage.getItem('fair_token')) : '')
     if (!activeTok) return
 
     let eventSource: EventSource | null = null
@@ -501,7 +501,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
 
         <div class="docket-header">
           <div>
-            <span class="badge">FAIR SUCCESS CARDS • COMMERCIAL PRINT PACKAGE (${item.size || 'A4'})</span>
+            <span class="badge">POPOTE SUCCESS CARDS • COMMERCIAL PRINT PACKAGE (${item.size || 'A4'})</span>
             <h1 class="order-title">Order #${orderNumber}</h1>
             <div class="val-sm">Placed: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} | Status: <strong>${item.print_status || 'PRINT QUEUED'}</strong></div>
           </div>
@@ -590,7 +590,7 @@ export default function OrdersTab({ token, onOpenManualOrder }: OrdersTabProps) 
 
         <!-- Footer Stamp -->
         <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; font-family: monospace;">
-          <span>FAIR CARDS KENYA PRODUCTION SYSTEM • ITEM ID: ${item.id}</span>
+          <span>POPOTE CARDS KENYA PRODUCTION SYSTEM • ITEM ID: ${item.id}</span>
           <span>PRINT OPERATOR INITIALS: _________</span>
         </div>
       </body>

@@ -1,6 +1,7 @@
 import { Pool, PoolConfig } from 'pg'
+import { logger } from '../utils/logger'
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/fair'
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/popote_cards'
 
 const config: PoolConfig = {
   connectionString,
@@ -12,7 +13,7 @@ const config: PoolConfig = {
 export const pool = new Pool(config)
 
 pool.on('error', (err) => {
-  console.error('[pg-pool] Unexpected error on idle client', err)
+  logger.error({ err }, '[pg-pool] Unexpected error on idle client')
 })
 
 export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {

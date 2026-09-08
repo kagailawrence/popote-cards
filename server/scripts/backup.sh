@@ -13,12 +13,12 @@ set -euo pipefail
 #   RETENTION_DAYS: Number of days to keep older backup files (default: 14)
 # ==============================================================================
 
-DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/fair}"
+DATABASE_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/popote_cards}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="${BACKUP_DIR:-"${SCRIPT_DIR}/../backups"}"
 RETENTION_DAYS="${RETENTION_DAYS:-14}"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-RAW_FILE="${BACKUP_DIR}/backup_fair_${TIMESTAMP}.sql.gz"
+RAW_FILE="${BACKUP_DIR}/backup_popote_${TIMESTAMP}.sql.gz"
 ENCRYPTED_FILE="${RAW_FILE}.enc"
 
 mkdir -p "${BACKUP_DIR}"

@@ -2,7 +2,9 @@
 
 -- Default Admin (Password: Admin123!)
 INSERT INTO admins (email, password_hash, role)
-VALUES ('admin@fair.co.ke', '$2b$12$ukbIvQX2/NSrzbh0Kzyvr.tw61XRjJLN3fBAfC2XA8v4kGBMkr5yO', 'super_admin')
+VALUES 
+  ('admin@popotecards.co.ke', '$2b$12$ukbIvQX2/NSrzbh0Kzyvr.tw61XRjJLN3fBAfC2XA8v4kGBMkr5yO', 'super_admin'),
+  ('admin@fair.co.ke', '$2b$12$ukbIvQX2/NSrzbh0Kzyvr.tw61XRjJLN3fBAfC2XA8v4kGBMkr5yO', 'super_admin')
 ON CONFLICT (email) DO NOTHING;
 
 -- Print Regions

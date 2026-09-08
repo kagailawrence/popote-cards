@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import {
   User, Lock, Mail, Phone, MapPin, Package, CheckCircle2,
   Clock, ArrowRight, LogOut, Sparkles, ShieldCheck, Heart,
-  Edit3, Save, UserCheck, ChevronRight, School, Award, Star
+  Edit3, Save, UserCheck, ChevronRight, School, Award, Star,
+  Eye, EyeOff
 } from 'lucide-react'
 import { useCustomerAuthStore, CustomerOrder } from '../../store/useCustomerAuthStore'
 import { getCookie } from '../../lib/cookies'
@@ -21,6 +22,7 @@ export default function CustomerAccountPage() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [authError, setAuthError] = useState('')
@@ -112,12 +114,6 @@ export default function CustomerAccountPage() {
         <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-scale-in">
           {/* Top Brand & Title */}
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-2xl bg-pink-600 flex items-center justify-center text-white mx-auto shadow-lg shadow-pink-500/30">
-              <Sparkles className="w-6 h-6 animate-spin-slow" />
-            </div>
-            <span className="text-[10px] uppercase tracking-widest font-extrabold text-pink-600 dark:text-pink-400 block">
-              FAIR CARDS CUSTOMER PORTAL
-            </span>
             <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
               {authMode === 'login' ? 'Welcome Back' : 'Create Customer Account'}
             </h1>
@@ -135,11 +131,10 @@ export default function CustomerAccountPage() {
                 setAuthMode('login')
                 setAuthError('')
               }}
-              className={`py-2 rounded-lg transition-all ${
-                authMode === 'login'
+              className={`py-2 rounded-lg transition-all ${authMode === 'login'
                   ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               Sign In
             </button>
@@ -148,11 +143,10 @@ export default function CustomerAccountPage() {
                 setAuthMode('register')
                 setAuthError('')
               }}
-              className={`py-2 rounded-lg transition-all ${
-                authMode === 'register'
+              className={`py-2 rounded-lg transition-all ${authMode === 'register'
                   ? 'bg-white dark:bg-zinc-900 text-pink-600 dark:text-pink-400 shadow-sm'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               Create Account
             </button>
@@ -187,13 +181,21 @@ export default function CustomerAccountPage() {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-3 py-2.5 focus:border-pink-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-10 py-2.5 focus:border-pink-500 focus:outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded-lg focus:outline-none"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -257,13 +259,21 @@ export default function CustomerAccountPage() {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3 top-3" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="At least 6 characters"
-                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-3 py-2.5 focus:border-pink-500 focus:outline-none"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-xs pl-9 pr-10 py-2.5 focus:border-pink-500 focus:outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded-lg focus:outline-none"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -293,11 +303,11 @@ export default function CustomerAccountPage() {
   // LOGGED-IN CUSTOMER DASHBOARD
   const initials = user.name
     ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2)
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2)
     : 'CU'
 
   return (
@@ -400,31 +410,28 @@ export default function CustomerAccountPage() {
         <div className="flex border-b border-zinc-200 dark:border-zinc-800 gap-6 text-sm font-bold">
           <button
             onClick={() => setActiveTab('orders')}
-            className={`pb-4 transition-colors relative flex items-center gap-2 ${
-              activeTab === 'orders'
+            className={`pb-4 transition-colors relative flex items-center gap-2 ${activeTab === 'orders'
                 ? 'text-pink-600 dark:text-pink-400 border-b-2 border-pink-600 dark:border-pink-500'
                 : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <Package className="w-4 h-4" /> Order History ({orders.length})
           </button>
           <button
             onClick={() => setActiveTab('addresses')}
-            className={`pb-4 transition-colors relative flex items-center gap-2 ${
-              activeTab === 'addresses'
+            className={`pb-4 transition-colors relative flex items-center gap-2 ${activeTab === 'addresses'
                 ? 'text-pink-600 dark:text-pink-400 border-b-2 border-pink-600 dark:border-pink-500'
                 : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <MapPin className="w-4 h-4" /> Saved School Addresses
           </button>
           <button
             onClick={() => setActiveTab('profile')}
-            className={`pb-4 transition-colors relative flex items-center gap-2 ${
-              activeTab === 'profile'
+            className={`pb-4 transition-colors relative flex items-center gap-2 ${activeTab === 'profile'
                 ? 'text-pink-600 dark:text-pink-400 border-b-2 border-pink-600 dark:border-pink-500'
                 : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+              }`}
           >
             <User className="w-4 h-4" /> Profile & Details
           </button>
@@ -462,13 +469,12 @@ export default function CustomerAccountPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-xs font-extrabold text-slate-900 dark:text-white">{ord.orderNumber}</span>
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
-                            ord.status === 'Delivered'
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${ord.status === 'Delivered'
                               ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                               : ord.status === 'Out for Delivery'
-                              ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800'
-                              : 'bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-800'
-                          }`}
+                                ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                                : 'bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 border-pink-300 dark:border-pink-800'
+                            }`}
                         >
                           {ord.status}
                         </span>

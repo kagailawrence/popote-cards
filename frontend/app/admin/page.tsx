@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import {
   Lock, LogOut, CheckCircle2, Clock, Printer, Truck, DollarSign,
   AlertCircle, RefreshCw, Layers, ShieldAlert, Bike, Package, Tag,
-  MapPin, Plus, Trash2, Palette, FolderPlus, Upload, Eye, Save, Image as ImageIcon, Check, Download, FileText, X, ExternalLink, Sliders, Star, Users
+  MapPin, Plus, Trash2, Palette, FolderPlus, Upload, Eye, EyeOff, Save, Image as ImageIcon, Check, Download, FileText, X, ExternalLink, Sliders, Star, Users
 } from 'lucide-react'
 import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard'
 import RegionalHubTab from '../../components/admin/RegionalHubTab'
@@ -21,8 +21,9 @@ import { getCookie, setCookie, eraseCookie } from '../../lib/cookies'
 
 export default function AdminPage() {
   const [token, setToken] = useState<string | null>(null)
-  const [email, setEmail] = useState('admin@fair.co.ke')
+  const [email, setEmail] = useState('admin@popotecards.co.ke')
   const [password, setPassword] = useState('Admin123!')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -33,7 +34,12 @@ export default function AdminPage() {
 
   // Automatically check cookies on mount to redirect to dashboard if token cookie is valid
   useEffect(() => {
-    const savedToken = getCookie('fair_admin_token') || (typeof window !== 'undefined' ? localStorage.getItem('fair_admin_token') : null)
+    const savedToken =
+      getCookie('popote_admin_token') ||
+      getCookie('fair_admin_token') ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token')
+        : null)
     if (savedToken) {
       setToken(savedToken)
       fetchAllAdminData(savedToken)
@@ -103,9 +109,9 @@ export default function AdminPage() {
 
       const accessToken = data.data.accessToken
       setToken(accessToken)
-      setCookie('fair_admin_token', accessToken, 7)
+      setCookie('popote_admin_token', accessToken, 7)
       if (typeof window !== 'undefined') {
-        localStorage.setItem('fair_admin_token', accessToken)
+        localStorage.setItem('popote_admin_token', accessToken)
       }
       fetchAllAdminData(accessToken)
       fetchAnalytics(accessToken)
@@ -264,7 +270,7 @@ export default function AdminPage() {
 </head>
 <body>
   <div className="header">
-    <span className="badge">FAIR CARDS KENYA • COMMERCIAL PRINT SPECIFICATION</span>
+    <span className="badge">POPOTE CARDS KENYA • COMMERCIAL PRINT SPECIFICATION</span>
     <h1 className="title">Order ${orderNumber} — ${item.size} Print Package</h1>
     <p>Target Candidate: <strong>${item.recipient_full_names}</strong> | Index/ADM: <strong>${item.admission_number}</strong></p>
   </div>
@@ -536,13 +542,23 @@ export default function AdminPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-400 mb-1">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-sm p-3 focus:border-pink-500 focus:outline-none shadow-sm"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl bg-slate-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-slate-900 dark:text-white text-sm p-3 pr-11 focus:border-pink-500 focus:outline-none shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded-lg focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -564,7 +580,7 @@ export default function AdminPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Admin Management Portal</h1>
-          <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">Logged in as admin@fair.co.ke (Super Admin)</p>
+          <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">Logged in as admin@popotecards.co.ke (Super Admin)</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -583,8 +599,10 @@ export default function AdminPage() {
           <button
             onClick={() => {
               setToken(null)
+              eraseCookie('popote_admin_token')
               eraseCookie('fair_admin_token')
               if (typeof window !== 'undefined') {
+                localStorage.removeItem('popote_admin_token')
                 localStorage.removeItem('fair_admin_token')
               }
             }}

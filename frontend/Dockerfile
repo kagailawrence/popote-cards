@@ -3,25 +3,34 @@ FROM node:20-alpine AS deps
 
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN apk add --no-cache libc6-compat python3 make g++
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+# Configure PNPM network resilience
+RUN pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-maxtimeout 120000 && \
+    pnpm config set network-concurrency 4
 
 COPY package.json pnpm-lock.yaml* package-lock.json* ./
-RUN pnpm install --frozen-lockfile || pnpm install
+
+# Install dependencies with BuildKit cache
+RUN --mount=type=cache,id=pnpm-store-frontend,target=/root/.local/share/pnpm/store \
+    pnpm install --no-frozen-lockfile
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Pass build environment variables if necessary
 ARG NEXT_PUBLIC_API_URL
+ARG INTERNAL_BACKEND_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+ENV INTERNAL_BACKEND_URL=${INTERNAL_BACKEND_URL:-http://server:4000}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN pnpm run build
@@ -44,7 +53,6 @@ RUN adduser --system --uid 1001 nextjs
 # Copy static assets and standalone bundle
 COPY --from=builder /app/public ./public
 
-# Automatically leverage output traces to reduce image size
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 

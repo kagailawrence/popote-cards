@@ -1,4 +1,5 @@
 import Redis from 'ioredis'
+import { logger } from '../utils/logger'
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379'
 
@@ -12,14 +13,14 @@ export const redis = new Redis(redisUrl, {
 })
 
 redis.on('error', (err) => {
-  // Silent log to prevent crashing if Redis is offline during local dev
-  console.warn('[Redis] Connection notice:', err.message)
+  logger.warn({ err: err.message }, '[Redis] Connection notice')
 })
 
 export async function initRedis() {
   try {
     await redis.connect()
+    logger.info('[Redis] Connected successfully')
   } catch (err: any) {
-    console.warn('[Redis] Skipped redis connection:', err.message)
+    logger.warn({ err: err.message }, '[Redis] Skipped redis connection')
   }
 }

@@ -47,7 +47,7 @@ export const useCartStore = create<CartStore>()(
       getTotalAmount: () => get().items.reduce((sum, item) => sum + item.unitPriceKes, 0),
     }),
     {
-      name: 'fair_cart_storage',
+      name: 'popote_cart_storage',
     }
   )
 )

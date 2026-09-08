@@ -3,8 +3,7 @@ import express from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 import compression from 'compression'
-import pinoHttp from 'pino-http'
-import { randomUUID } from 'crypto'
+
 
 import authRouter from './modules/auth/authRouter'
 import catalogRouter from './modules/catalog/catalogRouter'
@@ -22,6 +21,7 @@ import { inventoryRouter } from './modules/inventory/inventoryRouter'
 import reviewsRouter from './modules/reviews/reviewsRouter'
 import { errorHandler } from './middleware/errorHandler'
 import { apiLimiter } from './middleware/rateLimiter'
+import { httpLogger } from './utils/logger'
 
 export const app = express()
 
@@ -47,7 +47,26 @@ app.use(
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true)
+      const allowedOrigins = [
+        process.env.FRONTEND_URL,
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3001',
+      ].filter(Boolean)
+
+      if (
+        allowedOrigins.includes(origin) ||
+        process.env.NODE_ENV !== 'production' ||
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('http://127.0.0.1:')
+      ) {
+        return callback(null, true)
+      }
+      return callback(new Error('Not allowed by CORS'))
+    },
     credentials: true,
   })
 )
@@ -67,26 +86,14 @@ app.use((req, _res, next) => {
 app.use(compression())
 app.use(express.json({ limit: '100kb' }))
 
-// Pino HTTP logger with sensitive field redaction per Section 4.5
-app.use(
-  pinoHttp({
-    redact: ['req.headers.authorization', 'req.body.password', 'req.body.cardNumber'],
-    autoLogging: false,
-  })
-)
-
-// Request Correlation ID
-app.use((req, res, next) => {
-  const reqId = (req.headers['x-request-id'] as string) || randomUUID()
-  res.setHeader('X-Request-Id', reqId)
-  next()
-})
+// Structured HTTP access logging
+app.use(httpLogger)
 
 // Health Endpoint per Section 4.5 & 8
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
-    service: 'fair-server',
+    service: 'popote-server',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   })

@@ -118,10 +118,6 @@ export function LandingCardShowcase() {
         {/* Left Column: Interactive Controls & Live Customizer */}
         <div className="lg:col-span-5 space-y-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-100 dark:bg-pink-950/80 border border-pink-300 dark:border-pink-500/40 text-pink-700 dark:text-pink-300 text-xs font-bold shadow-sm">
-              <Zap className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
-              <span>Kenyan Success Cards Studio</span>
-            </div>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               Test Drive Your <span className="animate-shimmer">Success Card</span> Design
             </h3>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import {
   Users, UserPlus, Shield, ShieldCheck, Key, Lock, Unlock,
-  Trash2, Edit2, Search, Phone, Mail, ShoppingBag, Eye, X,
+  Trash2, Edit2, Search, Phone, Mail, ShoppingBag, Eye, EyeOff, X,
   CheckCircle2, AlertCircle, RefreshCw, Sparkles, Bike, Calendar, ArrowRight, Plus, Package
 } from 'lucide-react'
 
@@ -34,6 +34,10 @@ interface Rider {
   phone: string
   is_active: boolean
   total_deliveries?: number
+  vehicle_type?: string
+  vehicle_reg?: string
+  is_verified?: boolean
+  created_at?: string
 }
 
 interface UsersTabProps {
@@ -59,6 +63,7 @@ export default function UsersTab({ token }: UsersTabProps) {
   // Modals state
   const [showAddAdminModal, setShowAddAdminModal] = useState(false)
   const [showResetPasswordModal, setShowResetPasswordModal] = useState<AdminUser | null>(null)
+  const [showResetPassword, setShowResetPassword] = useState(false)
   const [showAddRiderModal, setShowAddRiderModal] = useState(false)
   const [editingRider, setEditingRider] = useState<Rider | null>(null)
   const [selectedCustomerForOrders, setSelectedCustomerForOrders] = useState<Customer | null>(null)
@@ -771,7 +776,7 @@ export default function UsersTab({ token }: UsersTabProps) {
                   required
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
-                  placeholder="e.g. manager@fair.co.ke"
+                  placeholder="e.g. manager@popotecards.co.ke"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-slate-900 dark:text-white font-bold"
                 />
               </div>
@@ -844,15 +849,25 @@ export default function UsersTab({ token }: UsersTabProps) {
             <form onSubmit={handleResetPassword} className="space-y-4 text-xs">
               <div>
                 <label className="block font-semibold mb-1 text-slate-600 dark:text-zinc-400">New Password (Min 8 Chars) *</label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={resetNewPassword}
-                  onChange={(e) => setResetNewPassword(e.target.value)}
-                  placeholder="Enter new strong password"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-slate-900 dark:text-white font-bold"
-                />
+                <div className="relative">
+                  <input
+                    type={showResetPassword ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={resetNewPassword}
+                    onChange={(e) => setResetNewPassword(e.target.value)}
+                    placeholder="Enter new strong password"
+                    className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-slate-900 dark:text-white font-bold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPassword(!showResetPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors p-0.5 rounded-lg focus:outline-none"
+                    aria-label={showResetPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showResetPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex gap-2 pt-2">

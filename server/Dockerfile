@@ -3,14 +3,23 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Enable Corepack and PNPM
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install native dependencies required for building bcrypt/sharp
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Enable Corepack and pin PNPM 9
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+# Configure PNPM network resilience
+RUN pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-maxtimeout 120000 && \
+    pnpm config set network-concurrency 4
 
 # Copy dependency files
 COPY package.json pnpm-lock.yaml* package-lock.json* ./
 
-# Install all dependencies (including devDependencies for building)
-RUN pnpm install --frozen-lockfile || pnpm install
+# Install all dependencies with BuildKit cache
+RUN --mount=type=cache,id=pnpm-store-server,target=/root/.local/share/pnpm/store \
+    pnpm install --no-frozen-lockfile
 
 # Copy source code and config
 COPY tsconfig.json ./
@@ -28,15 +37,21 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
-# Install runtime utilities (curl/wget for healthcheck, libc6-compat for sharp)
+# Install runtime utilities
 RUN apk add --no-cache libc6-compat curl wget
 
-# Enable Corepack and PNPM
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Enable Corepack and pin PNPM 9
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+
+# Configure PNPM network resilience
+RUN pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-maxtimeout 120000 && \
+    pnpm config set network-concurrency 4
 
 # Copy dependency definitions and install production-only dependencies
 COPY package.json pnpm-lock.yaml* package-lock.json* ./
-RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
+RUN --mount=type=cache,id=pnpm-store-server,target=/root/.local/share/pnpm/store \
+    pnpm install --prod --no-frozen-lockfile
 
 # Copy compiled JavaScript and DB migrations/seeds
 COPY --from=builder /app/dist ./dist

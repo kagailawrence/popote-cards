@@ -162,7 +162,7 @@ export function CardThumbnailVisual({
             {/* Clean Footer Info */}
             <div className="flex justify-between items-end z-10 text-[9px] text-amber-100/80 font-medium">
               <span>{allowsCustomPhoto ? '📷 Photo Optional' : '✨ Deluxe Edition'}</span>
-              <span className="font-bold tracking-wider opacity-90">FAIR CARDS</span>
+              <span className="font-bold tracking-wider opacity-90">POPOTE CARDS</span>
             </div>
           </div>
         )}

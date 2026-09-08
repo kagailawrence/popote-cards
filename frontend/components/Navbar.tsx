@@ -25,15 +25,26 @@ export function Navbar() {
 
   useEffect(() => {
     setMounted(true)
-    const adminToken = getCookie('fair_admin_token') || (typeof window !== 'undefined' ? localStorage.getItem('fair_admin_token') : null)
+    const adminToken =
+      getCookie('popote_admin_token') ||
+      getCookie('fair_admin_token') ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('popote_admin_token') || localStorage.getItem('fair_admin_token')
+        : null)
     setIsAdminLoggedIn(!!adminToken)
 
     async function fetchCategories() {
       try {
-        const res = await fetch('http://localhost:4000/api/v1/catalog/categories')
-        const data = await res.json()
-        if (data.data) {
-          setCategories(data.data)
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL
+            ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1/catalog/categories`
+            : '/api/v1/catalog/categories'
+        const res = await fetch(apiUrl)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.data) {
+            setCategories(data.data)
+          }
         }
       } catch (err) {
         console.error('Failed to load menu categories', err)

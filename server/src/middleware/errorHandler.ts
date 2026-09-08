@@ -1,19 +1,29 @@
 import { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod'
 import { ApiError } from '../utils/errors'
+import { logger } from '../utils/logger'
 
 export function errorHandler(err: any, req: Request, res: Response, _next: NextFunction) {
   const isProduction = process.env.NODE_ENV === 'production'
-  const requestId = res.getHeader('X-Request-Id') || 'unknown'
+  const requestId = res.getHeader('X-Request-Id') || req.headers['x-request-id'] || 'unknown'
 
-  // Log error details for diagnostics
-  if (!isProduction || (err.statusCode && err.statusCode >= 500) || !err.statusCode) {
-    console.error(`[fair-server-error] [ReqID: ${requestId}]`, {
-      name: err.name,
-      message: err.message,
-      code: err.code,
-      stack: isProduction ? undefined : err.stack,
-    })
+  // Log error details with structured context
+  const statusCode = err.statusCode || (err instanceof ZodError ? 400 : 500)
+  const logData = {
+    requestId,
+    method: req.method,
+    url: req.url,
+    statusCode,
+    name: err.name,
+    message: err.message,
+    code: err.code,
+    stack: isProduction && statusCode < 500 ? undefined : err.stack,
+  }
+
+  if (statusCode >= 500) {
+    logger.error(logData, `[Server Error] ${req.method} ${req.url} - ${err.message}`)
+  } else if (!isProduction) {
+    logger.warn(logData, `[Client Error] ${req.method} ${req.url} (${statusCode}) - ${err.message}`)
   }
 
   // 1. Custom ApiError instance
@@ -79,10 +89,10 @@ export function errorHandler(err: any, req: Request, res: Response, _next: NextF
   }
 
   // 5. Default Fallback Internal Server Error
-  const statusCode = err.statusCode || err.status || 500
-  const message = isProduction && statusCode === 500 ? 'An unexpected server error occurred' : err.message || 'An error occurred'
+  const fallbackStatus = statusCode || err.status || 500
+  const message = isProduction && fallbackStatus === 500 ? 'An unexpected server error occurred' : err.message || 'An error occurred'
 
-  return res.status(statusCode).json({
+  return res.status(fallbackStatus).json({
     error: message,
     code: err.code || 'INTERNAL_SERVER_ERROR',
   })
