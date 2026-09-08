@@ -31,7 +31,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    const res = await fetch('http://localhost:4000/api/v1/catalog/designs', {
+    const backendUrl =
+      process.env.INTERNAL_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      'http://localhost:4000'
+    const res = await fetch(`${backendUrl}/api/v1/catalog/designs`, {
       next: { revalidate: 3600 },
     })
     const data = await res.json()

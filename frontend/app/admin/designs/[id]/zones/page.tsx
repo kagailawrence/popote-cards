@@ -631,7 +631,16 @@ export default function AdminDesignStudioPage() {
         <div className="flex items-center gap-4">
           <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-900 border border-zinc-200 dark:border-zinc-800 shrink-0 flex items-center justify-center shadow-inner">
             {design?.thumbnail_url ? (
-              <img src={design.thumbnail_url} alt="Catalog thumbnail" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+              <img
+                src={design.thumbnail_url}
+                alt="Catalog thumbnail"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none'
+                }}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <ImageIcon className="w-8 h-8 text-pink-500 opacity-60" />
             )}
@@ -699,6 +708,9 @@ export default function AdminDesignStudioPage() {
                         alt={pt.label}
                         loading="lazy"
                         decoding="async"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none'
+                        }}
                         className="w-full h-full object-contain"
                       />
                     ) : (

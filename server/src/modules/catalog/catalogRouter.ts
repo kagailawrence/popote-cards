@@ -28,17 +28,9 @@ import {
   setDesignCategories,
 } from '../../db/queries/catalogQueries'
 import { requireAuth } from '../../middleware/auth'
+import { STORAGE_ROOT, formatImageUrl } from '../../utils/storage'
 
 const router = Router()
-const STORAGE_ROOT = path.resolve(__dirname, '../../../../storage')
-
-const formatImageUrl = (storagePath: string) => {
-  if (storagePath.startsWith('http://') || storagePath.startsWith('https://')) {
-    return storagePath
-  }
-  const filename = storagePath.split('/').pop()
-  return `http://localhost:4000/api/v1/files/design-images/${filename}`
-}
 
 router.get('/designs', async (req, res, next) => {
   try {

@@ -4,8 +4,8 @@ import { randomUUID } from 'crypto'
 import fs from 'fs'
 import sharp from 'sharp'
 import { BadRequestError } from '../utils/errors'
+import { STORAGE_ROOT } from '../utils/storage'
 
-const STORAGE_ROOT = path.resolve(__dirname, '../../../storage')
 const TMP_DIR = path.join(STORAGE_ROOT, 'tmp')
 
 if (!fs.existsSync(TMP_DIR)) {

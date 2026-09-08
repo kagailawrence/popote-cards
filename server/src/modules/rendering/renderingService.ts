@@ -4,8 +4,7 @@ import sharp from 'sharp'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import { queryOne, query } from '../../config/db'
 import { getDesignPages, getCustomizationZonesForDesign } from '../../db/queries/catalogQueries'
-
-const STORAGE_ROOT = path.resolve(__dirname, '../../../../storage')
+import { STORAGE_ROOT } from '../../utils/storage'
 
 function ensureDir(dirPath: string) {
   if (!fs.existsSync(dirPath)) {

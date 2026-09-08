@@ -37,6 +37,7 @@ interface Design {
   updated_at: string
   categories?: Category[]
   pages?: any[]
+  images?: any[]
 }
 
 interface DesignsTabProps {
@@ -649,6 +650,10 @@ export default function DesignsTab({ token }: DesignsTabProps) {
             const pA4 = d.price_a4_kes || d.price_kes || 850
             const pA3 = d.price_a3_kes || Math.round(Number(d.price_kes || 850) * 1.65)
 
+            const frontPageUrl = d.pages?.find((p: any) => p.page_type === 'front')?.url
+            const firstImgUrl = d.images && d.images.length > 0 ? (typeof d.images[0] === 'string' ? d.images[0] : d.images[0]?.url) : null
+            const displayThumbnail = d.thumbnail_url || frontPageUrl || firstImgUrl
+
             return (
               <div
                 key={d.id}
@@ -657,12 +662,22 @@ export default function DesignsTab({ token }: DesignsTabProps) {
                 <div className="space-y-3">
                   {/* Thumbnail Preview Banner */}
                   <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-950 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
-                    {d.thumbnail_url ? (
+                    {displayThumbnail ? (
                       <img
-                        src={d.thumbnail_url}
+                        src={displayThumbnail}
                         alt={d.name}
                         loading="lazy"
                         decoding="async"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none'
+                          const parent = (e.target as HTMLElement).parentElement
+                          if (parent && !parent.querySelector('.fallback-placeholder')) {
+                            const placeholder = document.createElement('div')
+                            placeholder.className = 'fallback-placeholder text-center space-y-1 text-slate-500'
+                            placeholder.innerHTML = '<span class="text-[10px] block font-semibold text-pink-400">Artwork Preview</span>'
+                            parent.appendChild(placeholder)
+                          }
+                        }}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (

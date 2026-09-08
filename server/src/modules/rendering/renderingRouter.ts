@@ -6,8 +6,7 @@ const router = Router()
 
 import path from 'path'
 import fs from 'fs'
-
-const STORAGE_ROOT = path.resolve(__dirname, '../../../../storage')
+import { STORAGE_ROOT } from '../../utils/storage'
 
 // Public proof preview endpoint (rate-limited, returns PNG buffer)
 router.post('/proof/:designId', async (req, res, next) => {

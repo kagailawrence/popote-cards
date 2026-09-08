@@ -1,5 +1,6 @@
 import { pool, query, queryOne } from '../../config/db'
 import path from 'path'
+import { formatCustomerPhotoUrl } from '../../utils/storage'
 
 export interface Customer {
   id: string
@@ -342,7 +343,7 @@ export async function getOrderDetailsWithItems(orderId: string): Promise<any> {
     return {
       ...item,
       dimensions: dimensionsMap[item.size] || dimensionsMap['A4'],
-      photo_url: item.custom_photo_storage_path ? `http://localhost:4000/api/v1/files/customer-photos/${path.basename(item.custom_photo_storage_path)}` : null
+      photo_url: formatCustomerPhotoUrl(item.custom_photo_storage_path)
     }
   })
 

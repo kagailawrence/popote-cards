@@ -24,7 +24,7 @@ export function createZipArchive(options: any = { zlib: { level: 9 } }): any {
   throw new Error('Unable to initialize zip archiver engine')
 }
 
-const STORAGE_ROOT = path.resolve(__dirname, '../../../storage')
+import { STORAGE_ROOT } from '../utils/storage'
 
 function sanitizeFilename(name: string): string {
   if (!name) return 'Card'

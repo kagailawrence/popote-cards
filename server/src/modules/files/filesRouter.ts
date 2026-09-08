@@ -4,9 +4,9 @@ import fs from 'fs'
 import jwt from 'jsonwebtoken'
 import { uploadCustomerPhoto, uploadDeliveryNote, uploadDesignImage, moveToPermanentStorage } from '../../middleware/upload'
 import { requireAuth } from '../../middleware/auth'
+import { STORAGE_ROOT } from '../../utils/storage'
 
 const router = Router()
-const STORAGE_ROOT = path.resolve(__dirname, '../../../../storage')
 const JWT_ACCESS_SECRET = process.env.JWT_SECRET || 'super-secret-development-jwt-key-32-chars-min'
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'super-secret-refresh-key-32-chars-min'
 
@@ -46,9 +46,15 @@ router.get('/:type/:filename', (req, res) => {
   const sanitizedFilename = path.basename(filename)
   let filePath = path.join(STORAGE_ROOT, type, sanitizedFilename)
 
-  // Fallback to default front cover if file missing in design-images
+  // Secondary checks across common storage directories
   if (!fs.existsSync(filePath)) {
-    if (type === 'design-images') {
+    const altPath1 = path.join(STORAGE_ROOT, sanitizedFilename)
+    const altPath2 = path.join(STORAGE_ROOT, 'design-images', sanitizedFilename)
+    if (fs.existsSync(altPath1)) {
+      filePath = altPath1
+    } else if (fs.existsSync(altPath2)) {
+      filePath = altPath2
+    } else if (type === 'design-images') {
       const fallbackPath = path.join(STORAGE_ROOT, 'design-images', 'default-front.webp')
       if (fs.existsSync(fallbackPath)) {
         filePath = fallbackPath

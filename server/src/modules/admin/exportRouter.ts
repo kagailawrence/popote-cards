@@ -5,9 +5,9 @@ import { requireAuth } from '../../middleware/auth'
 import { query } from '../../config/db'
 import { renderOrderItem } from '../rendering/renderingService'
 import { streamOrderResourcePackage, streamOrderItemResourcePackage, streamHubBatchPackage, createZipArchive } from '../../services/orderPackageService'
+import { STORAGE_ROOT } from '../../utils/storage'
 
 const router = Router()
-const STORAGE_ROOT = path.resolve(__dirname, '../../../../storage')
 
 router.use(requireAuth(['admin', 'super_admin', 'rider_manager']))
 
